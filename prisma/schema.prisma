@@ -46,6 +46,8 @@ model Product {
   active            Boolean  @default(true)
   featured          Boolean  @default(false)
   sortOrder         Int      @default(0)
+  category          String   @default("Geral")
+  installments      Int      @default(1)
   productIdBravoPay String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -69,6 +71,18 @@ model Order {
   bravopayTransactionId  String?   @unique
   pixCopyPaste           String?   @db.Text
   pixExpiresAt           DateTime?
+
+  paymentPlan            String    @default("AVISTA")
+  installmentCount       Int       @default(1)
+
+  shippingCep            String?
+  shippingAddress        String?
+  shippingNumber         String?
+  shippingComplement     String?
+  shippingNeighborhood   String?
+  shippingCity           String?
+  shippingState          String?
+
   deletedAt              DateTime?
   createdAt              DateTime  @default(now())
   paidAt                 DateTime?
@@ -90,6 +104,7 @@ model OrderItem {
   product        Product @relation(fields: [productId], references: [id])
   quantity       Int     @default(1)
   unitPriceCents Int
+  size           String?
 
   @@index([orderId])
   @@index([productId])

@@ -9,10 +9,21 @@ describe("checkoutSchema", () => {
     cpf: "529.982.247-25",
   };
 
+  const validShipping = {
+    cep: "01310-100",
+    address: "Av. Paulista",
+    number: "1000",
+    neighborhood: "Bela Vista",
+    city: "São Paulo",
+    state: "sp",
+  };
+
   it("accepts a valid checkout payload", () => {
     const result = checkoutSchema.safeParse({
       productSlug: "camiseta-oversized-preta",
+      size: "M",
       customer: validCustomer,
+      shipping: validShipping,
     });
     expect(result.success).toBe(true);
   });
@@ -21,6 +32,7 @@ describe("checkoutSchema", () => {
     const result = checkoutSchema.safeParse({
       productSlug: "camiseta-oversized-preta",
       customer: { ...validCustomer, cpf: "111.111.111-11" },
+      shipping: validShipping,
     });
     expect(result.success).toBe(false);
   });
@@ -29,6 +41,16 @@ describe("checkoutSchema", () => {
     const result = checkoutSchema.safeParse({
       productSlug: "camiseta-oversized-preta",
       customer: { ...validCustomer, phone: "123" },
+      shipping: validShipping,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects an invalid CEP", () => {
+    const result = checkoutSchema.safeParse({
+      productSlug: "camiseta-oversized-preta",
+      customer: validCustomer,
+      shipping: { ...validShipping, cep: "123" },
     });
     expect(result.success).toBe(false);
   });

@@ -7,7 +7,7 @@ export function Hero({ storeName }: { storeName: string }) {
         className="absolute inset-0 -z-10"
         style={{
           background:
-            "radial-gradient(60% 60% at 80% 20%, rgba(214,255,63,0.16) 0%, rgba(10,10,11,0) 60%), radial-gradient(50% 50% at 10% 90%, rgba(214,255,63,0.08) 0%, rgba(10,10,11,0) 60%)",
+            "radial-gradient(60% 60% at 80% 20%, rgba(29,185,84,0.18) 0%, rgba(0,0,0,0) 60%), radial-gradient(50% 50% at 10% 90%, rgba(29,185,84,0.10) 0%, rgba(0,0,0,0) 60%)",
         }}
       />
       <div className="container-page flex flex-col items-start gap-6 py-16 sm:py-24 lg:py-28">
@@ -28,10 +28,10 @@ export function Hero({ storeName }: { storeName: string }) {
 
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
           <ButtonLink href="#produtos" size="lg" variant="primary">
-            Ver coleção
+            Comprar agora
           </ButtonLink>
           <ButtonLink href="#produtos" size="lg" variant="secondary">
-            Comprar agora
+            Ver coleção
           </ButtonLink>
         </div>
       </div>

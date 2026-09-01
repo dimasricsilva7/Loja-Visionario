@@ -19,11 +19,21 @@ export default async function AdminOrdersPage() {
     customerPhone: order.customerPhone,
     customerCpf: order.customerCpf,
     productName: order.items[0]?.product.name ?? "—",
+    size: order.items[0]?.size ?? null,
     totalCents: order.totalCents,
+    paymentPlan: order.paymentPlan,
+    installmentCount: order.installmentCount,
     status: order.status,
     bravopayTransactionId: order.bravopayTransactionId,
     createdAt: order.createdAt.toISOString(),
     source: order.utm?.source ?? null,
+    address: order.shippingAddress
+      ? `${order.shippingAddress}, ${order.shippingNumber ?? "s/n"}${
+          order.shippingComplement ? ` - ${order.shippingComplement}` : ""
+        } - ${order.shippingNeighborhood ?? ""}, ${order.shippingCity ?? ""}/${order.shippingState ?? ""} - CEP ${
+          order.shippingCep ?? ""
+        }`
+      : null,
   }));
 
   return (

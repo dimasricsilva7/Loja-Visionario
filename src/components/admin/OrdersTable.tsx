@@ -13,11 +13,15 @@ interface OrderRow {
   customerPhone: string;
   customerCpf: string;
   productName: string;
+  size: string | null;
   totalCents: number;
+  paymentPlan: string;
+  installmentCount: number;
   status: string;
   bravopayTransactionId: string | null;
   createdAt: string;
   source: string | null;
+  address: string | null;
 }
 
 export function OrdersTable({ orders }: { orders: OrderRow[] }) {
@@ -55,6 +59,7 @@ export function OrdersTable({ orders }: { orders: OrderRow[] }) {
               <th className="p-3 font-semibold">Cliente</th>
               <th className="p-3 font-semibold">Contato</th>
               <th className="p-3 font-semibold">Produto</th>
+              <th className="p-3 font-semibold">Endereço</th>
               <th className="p-3 font-semibold">Valor</th>
               <th className="p-3 font-semibold">Status</th>
               <th className="p-3 font-semibold">Transação</th>
@@ -74,8 +79,19 @@ export function OrdersTable({ orders }: { orders: OrderRow[] }) {
                   <div>{order.customerEmail}</div>
                   <div className="text-muted">{formatBRPhone(order.customerPhone)}</div>
                 </td>
-                <td className="p-3">{order.productName}</td>
-                <td className="p-3 font-semibold">{formatCentsToBRL(order.totalCents)}</td>
+                <td className="p-3">
+                  <div>{order.productName}</div>
+                  {order.size && <div className="text-xs text-muted">Tamanho: {order.size}</div>}
+                </td>
+                <td className="max-w-[220px] truncate p-3 text-xs text-muted" title={order.address ?? undefined}>
+                  {order.address ?? "—"}
+                </td>
+                <td className="p-3 font-semibold">
+                  {formatCentsToBRL(order.totalCents)}
+                  {order.paymentPlan === "PARCELADO" && (
+                    <div className="text-xs font-normal text-muted">{order.installmentCount}x parcelado</div>
+                  )}
+                </td>
                 <td className="p-3"><StatusPill status={order.status} /></td>
                 <td className="p-3 font-mono text-xs text-muted">{order.bravopayTransactionId?.slice(0, 14) ?? "—"}</td>
                 <td className="p-3 text-xs text-muted">{order.source ?? "—"}</td>
@@ -108,9 +124,20 @@ export function OrdersTable({ orders }: { orders: OrderRow[] }) {
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-muted">
               <span>Produto</span><span className="text-right text-fg">{order.productName}</span>
-              <span>Valor</span><span className="text-right font-semibold text-fg">{formatCentsToBRL(order.totalCents)}</span>
+              {order.size && (<><span>Tamanho</span><span className="text-right text-fg">{order.size}</span></>)}
+              <span>Valor</span>
+              <span className="text-right font-semibold text-fg">
+                {formatCentsToBRL(order.totalCents)}
+                {order.paymentPlan === "PARCELADO" && ` (${order.installmentCount}x)`}
+              </span>
               <span>Data</span><span className="text-right text-fg">{new Date(order.createdAt).toLocaleDateString("pt-BR")}</span>
               <span>Origem</span><span className="text-right text-fg">{order.source ?? "—"}</span>
+              {order.address && (
+                <>
+                  <span>Endereço</span>
+                  <span className="text-right text-fg">{order.address}</span>
+                </>
+              )}
             </div>
             <button
               type="button"

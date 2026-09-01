@@ -28,11 +28,13 @@ export default async function EditProductPage({ params }: PageProps) {
           image: product.image,
           images: product.images.join("\n"),
           badge: product.badge ?? "",
-          badgeColor: product.badgeColor ?? "#d6ff3f",
+          badgeColor: product.badgeColor ?? "#1db954",
           stock: String(product.stock),
           active: product.active,
           featured: product.featured,
           sortOrder: String(product.sortOrder),
+          category: product.category,
+          installments: String(product.installments),
           productIdBravoPay: product.productIdBravoPay ?? "",
         }}
       />

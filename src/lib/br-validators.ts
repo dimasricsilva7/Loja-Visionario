@@ -51,6 +51,18 @@ export function formatBRPhone(rawPhone: string): string {
     .replace(/(\d{5})(\d{1,4})$/, "$1-$2");
 }
 
+export function isValidCEP(rawCep: string): boolean {
+  return onlyDigits(rawCep).length === 8;
+}
+
+export function formatCEP(rawCep: string): string {
+  const cep = onlyDigits(rawCep).slice(0, 8);
+  return cep.replace(/(\d{5})(\d{1,3})$/, "$1-$2");
+}
+
+export const PRODUCT_SIZES = ["P", "M", "G", "GG", "G1"] as const;
+export type ProductSize = (typeof PRODUCT_SIZES)[number];
+
 export function maskCPF(rawCpf: string): string {
   const cpf = onlyDigits(rawCpf);
   if (cpf.length !== 11) return rawCpf;

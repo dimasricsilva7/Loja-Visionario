@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CheckoutClient } from "@/components/store/CheckoutClient";
+import { OfferBar } from "@/components/store/OfferBar";
 import { getProductBySlug } from "@/lib/products";
+import { getStoreSettings } from "@/lib/settings";
+import { PRODUCT_SIZES } from "@/lib/br-validators";
 
 export const metadata: Metadata = {
   title: "Finalizar compra",
@@ -12,11 +15,13 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ tamanho?: string }>;
 }
 
-export default async function CheckoutPage({ params }: PageProps) {
+export default async function CheckoutPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const { tamanho } = await searchParams;
+  const [product, settings] = await Promise.all([getProductBySlug(slug), getStoreSettings()]);
 
   if (!product || !product.active) {
     notFound();
@@ -31,16 +36,25 @@ export default async function CheckoutPage({ params }: PageProps) {
     );
   }
 
+  const initialSize = PRODUCT_SIZES.includes(tamanho as (typeof PRODUCT_SIZES)[number])
+    ? (tamanho as (typeof PRODUCT_SIZES)[number])
+    : undefined;
+
   return (
-    <CheckoutClient
-      product={{
-        id: product.id,
-        slug: product.slug,
-        name: product.name,
-        image: product.image,
-        priceCents: product.priceCents,
-        compareAtPriceCents: product.compareAtPriceCents,
-      }}
-    />
+    <>
+      <OfferBar minutes={settings.offerCountdownMinutes} />
+      <CheckoutClient
+        initialSize={initialSize}
+        product={{
+          id: product.id,
+          slug: product.slug,
+          name: product.name,
+          image: product.image,
+          priceCents: product.priceCents,
+          compareAtPriceCents: product.compareAtPriceCents,
+          installments: product.installments,
+        }}
+      />
+    </>
   );
 }

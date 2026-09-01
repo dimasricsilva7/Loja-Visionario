@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { productSlug, customer, utm } = parsed.data;
+  const { productSlug, customer, utm, shipping, size, paymentPlan: requestedPlan } = parsed.data;
 
   const product = await prisma.product.findUnique({ where: { slug: productSlug } });
   if (!product || !product.active) {
@@ -38,12 +38,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Produto esgotado" }, { status: 409 });
   }
 
+  // O plano de parcelamento e a quantidade de parcelas vêm sempre do produto
+  // no banco — o cliente só escolhe "à vista" ou "parcelado", nunca o valor.
+  const canInstallment = product.installments > 1;
+  const paymentPlan = requestedPlan === "PARCELADO" && canInstallment ? "PARCELADO" : "AVISTA";
+  const installmentCount = paymentPlan === "PARCELADO" ? product.installments : 1;
+  const chargeAmountCents =
+    paymentPlan === "PARCELADO" ? Math.ceil(product.priceCents / installmentCount) : product.priceCents;
+
   // Evita criar uma nova cobrança PIX a cada duplo clique / retry do mesmo comprador.
   const existing = await prisma.order.findFirst({
     where: {
       customerEmail: customer.email,
       status: "PENDING",
       deletedAt: null,
+      paymentPlan,
       createdAt: { gte: new Date(Date.now() - DUPLICATE_WINDOW_MS) },
       items: { some: { productId: product.id } },
     },
@@ -54,13 +63,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       orderId: existing.id,
       status: existing.status,
-      amountCents: existing.totalCents,
+      amountCents: chargeAmountCents,
       pix: { copyPaste: existing.pixCopyPaste, expiresAt: existing.pixExpiresAt },
       product: { name: product.name, image: product.image },
     });
   }
 
-  const amountCents = product.priceCents; // preço sempre lido do banco, nunca do cliente
   const externalReference = `pedido_${randomUUID()}`;
 
   const order = await prisma.order.create({
@@ -69,11 +77,22 @@ export async function POST(request: NextRequest) {
       customerEmail: customer.email,
       customerPhone: customer.phone,
       customerCpf: customer.cpf,
-      totalCents: amountCents,
+      totalCents: product.priceCents,
+      paymentPlan,
+      installmentCount,
       status: "PENDING",
       externalReference,
+      shippingCep: shipping.cep,
+      shippingAddress: shipping.address,
+      shippingNumber: shipping.number,
+      shippingComplement: shipping.complement || null,
+      shippingNeighborhood: shipping.neighborhood,
+      shippingCity: shipping.city,
+      shippingState: shipping.state,
       items: {
-        create: [{ productId: product.id, quantity: 1, unitPriceCents: amountCents }],
+        create: [
+          { productId: product.id, quantity: 1, unitPriceCents: product.priceCents, size: size || null },
+        ],
       },
       ...(utm && Object.values(utm).some(Boolean)
         ? { utm: { create: utm } }
@@ -83,7 +102,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const transaction = await createPixTransaction({
-      amountCents,
+      amountCents: chargeAmountCents,
       customer,
       externalReference,
       productIdBravoPay: product.productIdBravoPay,
@@ -120,7 +139,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       orderId: order.id,
       status: mapBravoPayStatus(transaction.status),
-      amountCents,
+      amountCents: chargeAmountCents,
+      paymentPlan,
+      installmentCount,
       pix: { copyPaste: transaction.pix.copy_paste, expiresAt },
       product: { name: product.name, image: product.image },
     });

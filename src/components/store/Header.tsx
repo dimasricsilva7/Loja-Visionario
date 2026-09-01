@@ -13,13 +13,36 @@ export function Header({ storeName }: { storeName: string }) {
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-bg/90 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-border bg-black/90 backdrop-blur">
       <div className="container-page flex h-16 items-center justify-between">
-        <Link href="/" className="text-lg font-black tracking-tight">
+        <button
+          type="button"
+          aria-label={open ? "Fechar menu" : "Abrir menu"}
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+          className="inline-flex h-10 w-10 items-center justify-center text-fg md:hidden"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            {open ? (
+              <path d="M4 4l12 12M16 4L4 16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            ) : (
+              <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            )}
+          </svg>
+        </button>
+
+        <div className="hidden h-10 w-10 items-center justify-center text-fg md:flex">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.6" />
+            <path d="M12.5 12.5L16 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          </svg>
+        </div>
+
+        <Link href="/" className="text-lg font-black tracking-widest">
           {storeName.toUpperCase()}
         </Link>
 
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="hidden items-center gap-8 lg:flex">
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -31,34 +54,20 @@ export function Header({ storeName }: { storeName: string }) {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
-          <Link
-            href="/#produtos"
-            className="hidden h-10 items-center rounded-md bg-brand px-4 text-sm font-bold text-brand-fg md:inline-flex"
-          >
-            Comprar agora
-          </Link>
-          <button
-            type="button"
-            aria-label={open ? "Fechar menu" : "Abrir menu"}
-            aria-expanded={open}
-            onClick={() => setOpen((v) => !v)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border md:hidden"
-          >
-            <span className="sr-only">Menu</span>
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              {open ? (
-                <path d="M4 4l12 12M16 4L4 16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-              ) : (
-                <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-              )}
-            </svg>
-          </button>
-        </div>
+        <Link href="/#produtos" aria-label="Comprar" className="flex h-10 w-10 items-center justify-center text-fg">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path
+              d="M5 7h10l-.8 8.2a1.5 1.5 0 0 1-1.5 1.3H7.3a1.5 1.5 0 0 1-1.5-1.3L5 7Z"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+            <path d="M7.5 7V5.5a2.5 2.5 0 0 1 5 0V7" stroke="currentColor" strokeWidth="1.5" />
+          </svg>
+        </Link>
       </div>
 
       {open && (
-        <nav className="border-t border-border bg-bg md:hidden">
+        <nav className="border-t border-border bg-black md:hidden">
           <div className="container-page flex flex-col py-3">
             {navLinks.map((link) => (
               <Link

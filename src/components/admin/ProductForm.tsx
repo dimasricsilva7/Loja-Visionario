@@ -19,6 +19,8 @@ export interface ProductFormValues {
   active: boolean;
   featured: boolean;
   sortOrder: string;
+  category: string;
+  installments: string;
   productIdBravoPay: string;
 }
 
@@ -31,11 +33,13 @@ const emptyValues: ProductFormValues = {
   image: "",
   images: "",
   badge: "",
-  badgeColor: "#d6ff3f",
+  badgeColor: "#1db954",
   stock: "0",
   active: true,
   featured: false,
   sortOrder: "0",
+  category: "Geral",
+  installments: "1",
   productIdBravoPay: "",
 };
 
@@ -88,6 +92,8 @@ export function ProductForm({ initial }: { initial?: Partial<ProductFormValues> 
         active: values.active,
         featured: values.featured,
         sortOrder: parseInt(values.sortOrder || "0", 10),
+        category: values.category.trim() || "Geral",
+        installments: Math.max(1, parseInt(values.installments || "1", 10)),
         productIdBravoPay: values.productIdBravoPay.trim() || null,
       };
 
@@ -176,6 +182,28 @@ export function ProductForm({ initial }: { initial?: Partial<ProductFormValues> 
         </Row>
         <Row label="Cor do badge">
           <input type="color" className="input h-11 p-1" value={values.badgeColor} onChange={(e) => set("badgeColor", e.target.value)} />
+        </Row>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <Row label="Categoria">
+          <input
+            required
+            className="input"
+            placeholder="Camisetas, Moletons, Acessórios..."
+            value={values.category}
+            onChange={(e) => set("category", e.target.value)}
+          />
+        </Row>
+        <Row label="Parcelas no PIX (1 = à vista)">
+          <input
+            type="number"
+            min={1}
+            max={24}
+            className="input"
+            value={values.installments}
+            onChange={(e) => set("installments", e.target.value)}
+          />
         </Row>
       </div>
 

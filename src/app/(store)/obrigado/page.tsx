@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatCentsToBRL } from "@/lib/money";
+import { formatBRPhone, formatCEP } from "@/lib/br-validators";
 
 export const metadata: Metadata = {
   title: "Pedido confirmado",
@@ -24,6 +26,7 @@ export default async function ObrigadoPage({ searchParams }: PageProps) {
     : null;
 
   const isPaid = order?.status === "PAID";
+  const item = order?.items[0];
 
   return (
     <div className="container-page flex flex-col items-center py-16 text-center sm:py-24">
@@ -45,20 +48,46 @@ export default async function ObrigadoPage({ searchParams }: PageProps) {
           : "Assim que recebermos a confirmação do banco, atualizaremos automaticamente o status do seu pedido."}
       </p>
 
-      {order && (
-        <div className="mt-8 w-full max-w-sm rounded-lg border border-border bg-surface p-5 text-left text-sm">
-          <div className="flex justify-between border-b border-border pb-3">
-            <span className="text-muted">Pedido</span>
-            <span className="font-mono text-xs">{order.id.slice(0, 12).toUpperCase()}</span>
+      {order && item && (
+        <div className="mt-8 flex w-full max-w-md flex-col gap-4 text-left">
+          <div className="rounded-lg border border-border bg-surface p-5 text-sm">
+            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-muted">Pedido</p>
+            <div className="flex gap-3">
+              <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-md border border-border bg-surface-2">
+                <Image src={item.product.image} alt={item.product.name} fill className="object-cover" sizes="64px" />
+              </div>
+              <div>
+                <p className="font-semibold">{item.product.name}</p>
+                {item.size && <p className="text-xs text-muted">Tamanho: {item.size}</p>}
+                <p className="text-xs text-muted">Pedido #{order.id.slice(0, 10).toUpperCase()}</p>
+              </div>
+            </div>
+            <div className="mt-4 flex justify-between border-t border-border pt-3 font-bold">
+              <span>{order.paymentPlan === "PARCELADO" ? `1ª de ${order.installmentCount} parcelas` : "Total pago"}</span>
+              <span>{formatCentsToBRL(order.totalCents / (order.paymentPlan === "PARCELADO" ? order.installmentCount : 1))}</span>
+            </div>
           </div>
-          <div className="flex justify-between border-b border-border py-3">
-            <span className="text-muted">Produto</span>
-            <span>{order.items[0]?.product.name}</span>
+
+          <div className="rounded-lg border border-border bg-surface p-5 text-sm">
+            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-muted">Dados do comprador</p>
+            <p>{order.customerName}</p>
+            <p className="text-muted">{order.customerEmail}</p>
+            <p className="text-muted">{formatBRPhone(order.customerPhone)}</p>
           </div>
-          <div className="flex justify-between pt-3 font-bold">
-            <span>Total pago</span>
-            <span>{formatCentsToBRL(order.totalCents)}</span>
-          </div>
+
+          {order.shippingAddress && (
+            <div className="rounded-lg border border-border bg-surface p-5 text-sm">
+              <p className="mb-3 text-xs font-bold uppercase tracking-wide text-muted">Endereço de entrega</p>
+              <p>
+                {order.shippingAddress}, {order.shippingNumber}
+                {order.shippingComplement ? ` - ${order.shippingComplement}` : ""}
+              </p>
+              <p className="text-muted">
+                {order.shippingNeighborhood} — {order.shippingCity}/{order.shippingState}
+              </p>
+              <p className="text-muted">CEP {formatCEP(order.shippingCep || "")}</p>
+            </div>
+          )}
         </div>
       )}
 
