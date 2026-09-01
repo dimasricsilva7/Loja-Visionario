@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+:root {
+  --color-bg: #0a0a0b;
+  --color-surface: #141416;
+  --color-surface-2: #1d1d20;
+  --color-border: #2a2a2e;
+  --color-fg: #f5f5f6;
+  --color-muted: #9a9aa4;
+  --color-brand: #d6ff3f;
+  --color-brand-fg: #0a0a0b;
+  --color-brand-2: #a6e22e;
+  --color-danger: #ff5c5c;
+  --color-success: #2ecc71;
+  --color-warning: #ffb020;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.1rem;
+  --radius-xl: 1.6rem;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -8px rgba(0, 0, 0, 0.5);
+  --shadow-pop: 0 12px 32px -8px rgba(214, 255, 63, 0.25);
+}
+
+@theme inline {
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-surface-2: var(--color-surface-2);
+  --color-border: var(--color-border);
+  --color-fg: var(--color-fg);
+  --color-muted: var(--color-muted);
+  --color-brand: var(--color-brand);
+  --color-brand-fg: var(--color-brand-fg);
+  --color-brand-2: var(--color-brand-2);
+  --color-danger: var(--color-danger);
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  overflow-x: hidden;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-brand);
+  color: var(--color-brand-fg);
+}
+
+.container-page {
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container-page {
+    padding-inline: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-page {
+    padding-inline: 2rem;
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 1.6s ease-in-out infinite;
+}
+
+.input {
+  width: 100%;
+  height: 2.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-fg);
+  padding-inline: 0.875rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.input:focus {
+  border-color: var(--color-brand);
+}
+
+.input::placeholder {
+  color: var(--color-muted);
+}

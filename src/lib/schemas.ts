@@ -1,0 +1,61 @@
+import { z } from "zod";
+import { isValidBRPhone, isValidCPF, onlyDigits } from "./br-validators";
+
+export const utmSchema = z.object({
+  source: z.string().max(200).optional().nullable(),
+  medium: z.string().max(200).optional().nullable(),
+  campaign: z.string().max(200).optional().nullable(),
+  content: z.string().max(200).optional().nullable(),
+  term: z.string().max(200).optional().nullable(),
+  fbclid: z.string().max(500).optional().nullable(),
+  ttclid: z.string().max(500).optional().nullable(),
+  gclid: z.string().max(500).optional().nullable(),
+});
+
+export const checkoutSchema = z.object({
+  productSlug: z.string().min(1),
+  customer: z.object({
+    name: z.string().trim().min(3, "Nome muito curto").max(150),
+    email: z.string().trim().email("E-mail inválido").max(150),
+    phone: z
+      .string()
+      .transform(onlyDigits)
+      .refine(isValidBRPhone, "Telefone inválido"),
+    cpf: z
+      .string()
+      .transform(onlyDigits)
+      .refine(isValidCPF, "CPF inválido"),
+  }),
+  utm: utmSchema.optional(),
+});
+
+export type CheckoutInput = z.infer<typeof checkoutSchema>;
+
+export const adminLoginSchema = z.object({
+  email: z.string().trim().email(),
+  password: z.string().min(6),
+});
+
+export const productSchema = z.object({
+  name: z.string().trim().min(2).max(150),
+  slug: z
+    .string()
+    .trim()
+    .min(2)
+    .max(150)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug deve conter apenas letras minúsculas, números e hífens"),
+  description: z.string().trim().min(1),
+  priceCents: z.number().int().positive(),
+  compareAtPriceCents: z.number().int().positive().nullable().optional(),
+  image: z.string().trim().min(1),
+  images: z.array(z.string().trim().min(1)).default([]),
+  badge: z.string().trim().max(40).nullable().optional(),
+  badgeColor: z.string().trim().max(30).nullable().optional(),
+  stock: z.number().int().min(0).default(0),
+  active: z.boolean().default(true),
+  featured: z.boolean().default(false),
+  sortOrder: z.number().int().default(0),
+  productIdBravoPay: z.string().trim().max(150).nullable().optional(),
+});
+
+export type ProductInput = z.infer<typeof productSchema>;
