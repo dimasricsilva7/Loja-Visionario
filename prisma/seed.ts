@@ -1,9 +1,16 @@
-import { PrismaClient } from "@prisma/client";
-import { hashPassword } from "../src/lib/password";
+import { config as loadEnv } from "dotenv";
 
-const prisma = new PrismaClient();
+// `tsx prisma/seed.ts` roda fora do carregamento de env do Next.js/Prisma CLI.
+loadEnv({ path: ".env.local" });
+loadEnv();
 
 async function main() {
+  // import() dinâmico garante que o env acima já foi carregado antes do
+  // módulo do Prisma ler process.env.DATABASE_URL na construção do adapter
+  // (imports estáticos seriam avaliados antes das chamadas de loadEnv acima).
+  const { prisma } = await import("../src/lib/prisma");
+  const { hashPassword } = await import("../src/lib/password");
+
   const adminEmail = (process.env.ADMIN_EMAIL || "admin@loja.com").toLowerCase();
   const adminPassword = process.env.ADMIN_PASSWORD || "troque-esta-senha-123";
 
@@ -72,13 +79,13 @@ async function main() {
     });
     console.log("Produtos de exemplo criados.");
   }
+
+  await prisma.$disconnect();
 }
 
 main()
+  .then(() => process.exit(0))
   .catch((error) => {
     console.error(error);
     process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
   });
