@@ -32,6 +32,7 @@ export const shippingAddressSchema = z.object({
 export const checkoutSchema = z.object({
   productSlug: z.string().min(1),
   size: z.enum(PRODUCT_SIZES).optional().nullable(),
+  quantity: z.number().int().min(1).max(10).default(1),
   paymentPlan: z.enum(["AVISTA", "PARCELADO"]).default("AVISTA"),
   customer: z.object({
     name: z.string().trim().min(3, "Nome muito curto").max(150),

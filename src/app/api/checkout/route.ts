@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { productSlug, customer, utm, shipping, size, paymentPlan: requestedPlan } = parsed.data;
+  const { productSlug, customer, utm, shipping, size, quantity, paymentPlan: requestedPlan } = parsed.data;
 
   const product = await prisma.product.findUnique({ where: { slug: productSlug } });
   if (!product || !product.active) {
@@ -40,9 +40,13 @@ export async function POST(request: NextRequest) {
   if (product.stock <= 0) {
     return NextResponse.json({ error: "Produto esgotado" }, { status: 409 });
   }
+  if (quantity > product.stock) {
+    return NextResponse.json({ error: "Quantidade indisponível em estoque" }, { status: 409 });
+  }
 
   const settings = await getStoreSettings();
   const shippingCents = settings.shippingCents;
+  const lineTotalCents = product.priceCents * quantity;
 
   // O plano de parcelamento e a quantidade de parcelas vêm sempre do produto
   // no banco — o cliente só escolhe "à vista" ou "parcelado", nunca o valor.
@@ -51,7 +55,7 @@ export async function POST(request: NextRequest) {
   const paymentPlan = requestedPlan === "PARCELADO" && canInstallment ? "PARCELADO" : "AVISTA";
   const installmentCount = paymentPlan === "PARCELADO" ? product.installments : 1;
   const productPortion =
-    paymentPlan === "PARCELADO" ? Math.ceil(product.priceCents / installmentCount) : product.priceCents;
+    paymentPlan === "PARCELADO" ? Math.ceil(lineTotalCents / installmentCount) : lineTotalCents;
   const chargeAmountCents = productPortion + shippingCents;
 
   // Evita criar uma nova cobrança PIX a cada duplo clique / retry do mesmo comprador.
@@ -87,13 +91,13 @@ export async function POST(request: NextRequest) {
     try {
       order = await prisma.order.create({
         data: {
-          orderNumber: generateOrderNumber(settings.storeName),
+          orderNumber: generateOrderNumber(),
           customerId: customerSession?.sub,
           customerName: customer.name,
           customerEmail: customer.email,
           customerPhone: customer.phone,
           customerCpf: customer.cpf,
-          totalCents: product.priceCents,
+          totalCents: lineTotalCents,
           shippingCents,
           paymentPlan,
           installmentCount,
@@ -108,7 +112,7 @@ export async function POST(request: NextRequest) {
           shippingState: shipping.state,
           items: {
             create: [
-              { productId: product.id, quantity: 1, unitPriceCents: product.priceCents, size: size || null },
+              { productId: product.id, quantity, unitPriceCents: product.priceCents, size: size || null },
             ],
           },
           ...(utm && Object.values(utm).some(Boolean)

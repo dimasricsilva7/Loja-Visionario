@@ -3,10 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/Button";
 import { formatCentsToBRL } from "@/lib/money";
 import { PRODUCT_SIZES, type ProductSize } from "@/lib/br-validators";
-import { CloseIcon, BagIcon } from "@/components/icons";
+import { CloseIcon, BagIcon, CheckCircleIcon } from "@/components/icons";
 
 interface QuickViewProduct {
   slug: string;
@@ -21,37 +20,31 @@ interface QuickViewProduct {
 export function QuickViewModal({ product, onClose }: { product: QuickViewProduct; onClose: () => void }) {
   const router = useRouter();
   const [size, setSize] = useState<ProductSize | "">("");
+  const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const installmentPrice =
     product.installments > 1 ? Math.ceil(product.priceCents / product.installments) : null;
   const outOfStock = product.stock <= 0;
+  const maxQuantity = Math.max(1, Math.min(10, product.stock));
 
   function handleAddToCart() {
-    if (!size) {
-      setError("Selecione um tamanho para continuar.");
-      return;
-    }
-    setError(null);
+    if (!size) return;
     setAddedToCart(true);
   }
 
   function handleGoToCheckout() {
-    router.push(`/checkout/${product.slug}?tamanho=${size}`);
+    router.push(`/checkout/${product.slug}?tamanho=${size}&qtd=${quantity}`);
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 sm:items-center"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 sm:items-center" onClick={onClose}>
       <div
-        className="theme-light w-full max-w-md rounded-t-xl bg-bg p-5 text-fg sm:rounded-xl sm:p-6"
+        className="w-full max-w-md rounded-t-xl border border-border bg-surface p-5 text-fg sm:rounded-xl sm:p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-black tracking-tight">Adicionar ao carrinho</h2>
+          <h2 className="text-lg font-black tracking-tight">Adicionar ao Carrinho</h2>
           <button type="button" onClick={onClose} aria-label="Fechar" className="text-muted hover:text-fg">
             <CloseIcon />
           </button>
@@ -62,7 +55,7 @@ export function QuickViewModal({ product, onClose }: { product: QuickViewProduct
             <Image src={product.image} alt={product.name} fill className="object-cover" sizes="96px" />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="truncate text-sm font-semibold">{product.name}</h3>
+            <h3 className="text-sm font-semibold">{product.name}</h3>
             <div className="mt-1 flex items-baseline gap-2">
               <span className="text-lg font-black text-brand">{formatCentsToBRL(product.priceCents)}</span>
               {product.compareAtPriceCents && (
@@ -86,7 +79,9 @@ export function QuickViewModal({ product, onClose }: { product: QuickViewProduct
         ) : (
           <>
             <div className="mt-5">
-              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted">Tamanho</p>
+              <p className="mb-2 text-sm font-bold">
+                Tamanho <span className="text-danger">*</span>
+              </p>
               <div className="flex flex-wrap gap-2">
                 {PRODUCT_SIZES.map((s) => (
                   <button
@@ -94,7 +89,6 @@ export function QuickViewModal({ product, onClose }: { product: QuickViewProduct
                     type="button"
                     onClick={() => {
                       setSize(s);
-                      setError(null);
                       setAddedToCart(false);
                     }}
                     className={`h-10 w-14 rounded-md border text-sm font-semibold transition ${
@@ -105,24 +99,54 @@ export function QuickViewModal({ product, onClose }: { product: QuickViewProduct
                   </button>
                 ))}
               </div>
-              {error && <p className="mt-2 text-sm font-medium text-danger">{error}</p>}
             </div>
 
-            {addedToCart && (
-              <p className="mt-4 flex items-center gap-2 rounded-md bg-brand/15 p-3 text-sm font-semibold text-brand">
-                Produto adicionado! Continue para o checkout.
+            <div className="mt-5">
+              <p className="mb-2 text-sm font-bold">Quantidade</p>
+              <div className="flex w-fit items-center gap-3 rounded-md border border-border bg-surface-2 px-3 py-1.5">
+                <button
+                  type="button"
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  className="flex h-6 w-6 items-center justify-center text-lg text-fg disabled:opacity-40"
+                  disabled={quantity <= 1}
+                  aria-label="Diminuir quantidade"
+                >
+                  −
+                </button>
+                <span className="w-5 text-center text-sm font-semibold">{quantity}</span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity((q) => Math.min(maxQuantity, q + 1))}
+                  className="flex h-6 w-6 items-center justify-center text-lg text-fg disabled:opacity-40"
+                  disabled={quantity >= maxQuantity}
+                  aria-label="Aumentar quantidade"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            {!size && !addedToCart && (
+              <p className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-warning">
+                <span className="h-1.5 w-1.5 rounded-full bg-warning" />
+                Selecione um tamanho para continuar
               </p>
             )}
 
-            <Button
+            {addedToCart && (
+              <p className="mt-4 flex items-center gap-2 rounded-md bg-brand/15 p-3 text-sm font-semibold text-brand">
+                <CheckCircleIcon className="h-4 w-4 shrink-0" /> Produto adicionado! O que deseja fazer agora?
+              </p>
+            )}
+
+            <button
               type="button"
-              size="lg"
-              fullWidth
-              className="mt-5"
+              disabled={!size && !addedToCart}
               onClick={addedToCart ? handleGoToCheckout : handleAddToCart}
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-md bg-brand py-3 text-sm font-bold text-brand-fg transition disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <BagIcon /> {addedToCart ? "Ver carrinho" : "Adicionar ao carrinho"}
-            </Button>
+              <BagIcon /> {addedToCart ? "Ver carrinho" : "Adicionar ao Carrinho"}
+            </button>
           </>
         )}
       </div>

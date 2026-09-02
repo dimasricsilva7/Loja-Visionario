@@ -56,10 +56,12 @@ const STEPS: { key: Step; label: string }[] = [
 export function CheckoutClient({
   product,
   initialSize,
+  initialQuantity = 1,
   shippingCents,
 }: {
   product: CheckoutProduct;
   initialSize?: ProductSize;
+  initialQuantity?: number;
   shippingCents: number;
 }) {
   const router = useRouter();
@@ -69,6 +71,7 @@ export function CheckoutClient({
   const [copied, setCopied] = useState(false);
 
   const [size, setSize] = useState<ProductSize | "">(initialSize || "");
+  const [quantity] = useState(initialQuantity);
   const [paymentPlan, setPaymentPlan] = useState<PaymentPlan>("AVISTA");
 
   const [name, setName] = useState("");
@@ -200,6 +203,7 @@ export function CheckoutClient({
         body: JSON.stringify({
           productSlug: product.slug,
           size,
+          quantity,
           paymentPlan,
           customer: {
             name: name.trim(),
@@ -254,10 +258,11 @@ export function CheckoutClient({
     }
   }
 
+  const lineTotalCents = product.priceCents * quantity;
   const installmentAmount =
-    product.installments > 1 ? Math.ceil(product.priceCents / product.installments) : null;
-  const productPortion = paymentPlan === "PARCELADO" && installmentAmount ? installmentAmount : product.priceCents;
-  const totalWithShipping = product.priceCents + shippingCents;
+    product.installments > 1 ? Math.ceil(lineTotalCents / product.installments) : null;
+  const productPortion = paymentPlan === "PARCELADO" && installmentAmount ? installmentAmount : lineTotalCents;
+  const totalWithShipping = lineTotalCents + shippingCents;
   const chargeTotal = productPortion + shippingCents;
 
   return (
@@ -329,7 +334,7 @@ export function CheckoutClient({
                             checked={paymentPlan === "AVISTA"}
                             onChange={() => setPaymentPlan("AVISTA")}
                           />
-                          PIX à vista — {formatCentsToBRL(product.priceCents)}
+                          PIX à vista — {formatCentsToBRL(lineTotalCents)}
                         </label>
                         <label
                           className={`flex-1 cursor-pointer rounded-md border p-3 text-sm ${
@@ -469,19 +474,19 @@ export function CheckoutClient({
             <div className="flex-1">
               <p className="text-sm font-semibold">{product.name}</p>
               {size && <p className="text-xs text-muted">Tamanho: {size}</p>}
-              <p className="text-xs text-muted">Quantidade: 1</p>
+              <p className="text-xs text-muted">Quantidade: {quantity}</p>
             </div>
           </div>
 
           <div className="mt-4 space-y-1 border-t border-border pt-4 text-sm">
             <div className="flex justify-between">
               <span className="text-muted">Subtotal</span>
-              <span>{formatCentsToBRL(product.priceCents)}</span>
+              <span>{formatCentsToBRL(lineTotalCents)}</span>
             </div>
             {product.compareAtPriceCents && (
               <div className="flex justify-between text-brand">
                 <span>Desconto</span>
-                <span>-{formatCentsToBRL(product.compareAtPriceCents - product.priceCents)}</span>
+                <span>-{formatCentsToBRL((product.compareAtPriceCents - product.priceCents) * quantity)}</span>
               </div>
             )}
             <div className="flex justify-between">
