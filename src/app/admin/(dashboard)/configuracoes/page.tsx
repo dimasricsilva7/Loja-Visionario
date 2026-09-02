@@ -15,6 +15,8 @@ export default async function AdminSettingsPage() {
           storeName: settings.storeName,
           logoUrl: settings.logoUrl,
           heroImageUrl: settings.heroImageUrl,
+          heroImage2Url: settings.heroImage2Url,
+          heroImage3Url: settings.heroImage3Url,
           marqueeLogo1Url: settings.marqueeLogo1Url,
           marqueeLogo2Url: settings.marqueeLogo2Url,
           shippingCents: settings.shippingCents,

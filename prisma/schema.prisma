@@ -61,6 +61,8 @@ model StoreSettings {
   storeName        String   @default("Norte")
   logoUrl          String?
   heroImageUrl     String?
+  heroImage2Url    String?
+  heroImage3Url    String?
   marqueeLogo1Url  String?
   marqueeLogo2Url  String?
   shippingCents    Int      @default(0)

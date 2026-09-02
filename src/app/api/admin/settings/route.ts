@@ -8,6 +8,8 @@ const settingsSchema = z.object({
   storeName: z.string().trim().min(2).max(80),
   logoUrl: z.string().trim().url().nullable().optional(),
   heroImageUrl: z.string().trim().url().nullable().optional(),
+  heroImage2Url: z.string().trim().url().nullable().optional(),
+  heroImage3Url: z.string().trim().url().nullable().optional(),
   marqueeLogo1Url: z.string().trim().url().nullable().optional(),
   marqueeLogo2Url: z.string().trim().url().nullable().optional(),
   shippingCents: z.number().int().min(0).max(100000),

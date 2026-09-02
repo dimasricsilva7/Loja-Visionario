@@ -21,9 +21,13 @@ export default async function HomePage() {
   // categorias continuam acessíveis pelo produto/checkout diretamente.
   const groups = allGroups.filter((g) => isCanonicalCategory(g.category));
 
+  const heroImages = [settings.heroImageUrl, settings.heroImage2Url, settings.heroImage3Url].filter(
+    (url): url is string => Boolean(url)
+  );
+
   return (
     <>
-      <Hero heroImageUrl={settings.heroImageUrl} />
+      <Hero heroImages={heroImages} />
       <TrustBadges />
 
       <div id="produtos">

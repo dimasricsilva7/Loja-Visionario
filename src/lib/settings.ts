@@ -5,6 +5,8 @@ export const DEFAULT_STORE_SETTINGS = {
   storeName: "Norte",
   logoUrl: null as string | null,
   heroImageUrl: null as string | null,
+  heroImage2Url: null as string | null,
+  heroImage3Url: null as string | null,
   marqueeLogo1Url: null as string | null,
   marqueeLogo2Url: null as string | null,
   shippingCents: 0,
@@ -25,6 +27,8 @@ export async function upsertStoreSettings(data: {
   storeName: string;
   logoUrl?: string | null;
   heroImageUrl?: string | null;
+  heroImage2Url?: string | null;
+  heroImage3Url?: string | null;
   marqueeLogo1Url?: string | null;
   marqueeLogo2Url?: string | null;
   shippingCents: number;

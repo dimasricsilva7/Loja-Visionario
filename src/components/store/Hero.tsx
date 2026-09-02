@@ -1,14 +1,11 @@
-import Image from "next/image";
 import { ButtonLink } from "@/components/ui/Button";
+import { HeroImageRotator } from "./HeroImageRotator";
 
-export function Hero({ heroImageUrl }: { heroImageUrl?: string | null }) {
+export function Hero({ heroImages }: { heroImages: string[] }) {
   return (
     <section className="relative overflow-hidden border-b border-border">
-      {heroImageUrl ? (
-        <>
-          <Image src={heroImageUrl} alt="" fill priority className="object-cover" sizes="100vw" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-black/20" />
-        </>
+      {heroImages.length > 0 ? (
+        <HeroImageRotator images={heroImages} />
       ) : (
         <div
           className="absolute inset-0 -z-10"

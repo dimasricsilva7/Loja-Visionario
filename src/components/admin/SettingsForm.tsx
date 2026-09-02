@@ -9,6 +9,8 @@ interface Props {
     storeName: string;
     logoUrl: string | null;
     heroImageUrl: string | null;
+    heroImage2Url: string | null;
+    heroImage3Url: string | null;
     marqueeLogo1Url: string | null;
     marqueeLogo2Url: string | null;
     shippingCents: number;
@@ -21,6 +23,8 @@ export function SettingsForm({ initial }: Props) {
   const [storeName, setStoreName] = useState(initial.storeName);
   const [logoUrl, setLogoUrl] = useState(initial.logoUrl ?? "");
   const [heroImageUrl, setHeroImageUrl] = useState(initial.heroImageUrl ?? "");
+  const [heroImage2Url, setHeroImage2Url] = useState(initial.heroImage2Url ?? "");
+  const [heroImage3Url, setHeroImage3Url] = useState(initial.heroImage3Url ?? "");
   const [marqueeLogo1Url, setMarqueeLogo1Url] = useState(initial.marqueeLogo1Url ?? "");
   const [marqueeLogo2Url, setMarqueeLogo2Url] = useState(initial.marqueeLogo2Url ?? "");
   const [shippingPrice, setShippingPrice] = useState((initial.shippingCents / 100).toFixed(2));
@@ -43,6 +47,8 @@ export function SettingsForm({ initial }: Props) {
           storeName: storeName.trim(),
           logoUrl: logoUrl.trim() || null,
           heroImageUrl: heroImageUrl.trim() || null,
+          heroImage2Url: heroImage2Url.trim() || null,
+          heroImage3Url: heroImage3Url.trim() || null,
           marqueeLogo1Url: marqueeLogo1Url.trim() || null,
           marqueeLogo2Url: marqueeLogo2Url.trim() || null,
           shippingCents: Math.max(0, Math.round(Number(shippingPrice.replace(",", ".")) * 100) || 0),
@@ -78,15 +84,36 @@ export function SettingsForm({ initial }: Props) {
       </label>
 
       <label className="flex flex-col gap-1.5 text-sm">
-        <span className="font-medium text-muted">URL da imagem da hero (opcional)</span>
+        <span className="font-medium text-muted">Imagem 1 da hero (opcional)</span>
         <input
           className="input"
           value={heroImageUrl}
           onChange={(e) => setHeroImageUrl(e.target.value)}
           placeholder="https://..."
         />
+      </label>
+
+      <label className="flex flex-col gap-1.5 text-sm">
+        <span className="font-medium text-muted">Imagem 2 da hero (opcional)</span>
+        <input
+          className="input"
+          value={heroImage2Url}
+          onChange={(e) => setHeroImage2Url(e.target.value)}
+          placeholder="https://..."
+        />
+      </label>
+
+      <label className="flex flex-col gap-1.5 text-sm">
+        <span className="font-medium text-muted">Imagem 3 da hero (opcional)</span>
+        <input
+          className="input"
+          value={heroImage3Url}
+          onChange={(e) => setHeroImage3Url(e.target.value)}
+          placeholder="https://..."
+        />
         <span className="text-xs text-muted">
-          Envie sua própria foto/arte. Se vazio, usamos um fundo gerado automaticamente.
+          Envie até 3 fotos/artes próprias — elas alternam automaticamente na hero. Com só 1
+          preenchida, ela fica fixa. Vazio usa um fundo gerado automaticamente.
         </span>
       </label>
 
