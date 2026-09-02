@@ -23,7 +23,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <Hero storeName={settings.storeName} heroImageUrl={settings.heroImageUrl} />
+      <Hero heroImageUrl={settings.heroImageUrl} />
       <TrustBadges />
 
       <div id="produtos">

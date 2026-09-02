@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { ButtonLink } from "@/components/ui/Button";
 
-export function Hero({ storeName, heroImageUrl }: { storeName: string; heroImageUrl?: string | null }) {
+export function Hero({ heroImageUrl }: { heroImageUrl?: string | null }) {
   return (
     <section className="relative overflow-hidden border-b border-border">
       {heroImageUrl ? (
@@ -20,19 +20,18 @@ export function Hero({ storeName, heroImageUrl }: { storeName: string; heroImage
       )}
 
       <div className="container-page relative flex flex-col items-start gap-6 py-16 sm:py-24 lg:py-28">
-        <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand">
-          Coleção em pré-lançamento
+        <span className="inline-flex items-center gap-2 rounded-full bg-brand px-3 py-1 text-xs font-semibold text-brand-fg">
+          Poucas peças em estoque
         </span>
 
         <h1 className="max-w-2xl text-4xl font-black leading-[1.05] tracking-tight sm:text-6xl">
-          {storeName} não segue tendência.
+          Pré-Lançamento
           <br />
-          Cria a própria.
+          Exclusivo
         </h1>
 
         <p className="max-w-lg text-base text-muted sm:text-lg">
-          Peças exclusivas, produção limitada e entrega para todo o Brasil. Garanta a sua antes que
-          esgote.
+          Garanta já as novas peças da coleção antes que esgote. Edição limitada.
         </p>
 
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
