@@ -50,7 +50,7 @@ export default async function ProductPage({ params }: PageProps) {
   const { rating, reviews } = getFakeRating(product.id);
   const viewingNow = getViewingNowCount(product.id);
   const recentlySold = getRecentlySoldCount(product.id);
-  const related = await getCuratedRelatedProducts(product.id, product.category);
+  const related = await getCuratedRelatedProducts(product.id, product.categories);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -108,7 +108,7 @@ export default async function ProductPage({ params }: PageProps) {
             {discount && <Badge label={`-${discount}% OFF`} color="#ff5c5c" />}
           </div>
 
-          <p className="text-xs font-bold uppercase tracking-wide text-muted">{product.category}</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-muted">{product.categories.join(" · ")}</p>
           <h1 className="text-2xl font-black tracking-tight sm:text-3xl">{product.name}</h1>
 
           <div className="flex items-baseline gap-3">

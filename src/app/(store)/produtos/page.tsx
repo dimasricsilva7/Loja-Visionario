@@ -17,10 +17,10 @@ export default async function AllProductsPage({ searchParams }: PageProps) {
   const [products, settings] = await Promise.all([getActiveProducts(), getStoreSettings()]);
 
   const categories = sortCategoriesCanonically(
-    Array.from(new Set(products.map((p) => p.category))).map((category) => ({ category }))
+    Array.from(new Set(products.flatMap((p) => p.categories))).map((category) => ({ category }))
   ).map((c) => c.category);
 
-  const filtered = categoria ? products.filter((p) => p.category === categoria) : products;
+  const filtered = categoria ? products.filter((p) => p.categories.includes(categoria)) : products;
 
   return (
     <div className="py-8 sm:py-12">

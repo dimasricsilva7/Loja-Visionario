@@ -25,18 +25,20 @@ export async function getProductsGroupedByCategory() {
   const groups = new Map<string, typeof products>();
 
   for (const product of products) {
-    const key = product.category || "Geral";
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key)!.push(product);
+    const productCategories = product.categories.length > 0 ? product.categories : ["Geral"];
+    for (const key of productCategories) {
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(product);
+    }
   }
 
   const list = Array.from(groups.entries()).map(([category, items]) => ({ category, products: items }));
   return sortCategoriesCanonically(list);
 }
 
-export function getRelatedProducts(category: string, excludeId: string, limit = 4) {
+export function getRelatedProducts(categories: string[], excludeId: string, limit = 4) {
   return prisma.product.findMany({
-    where: { active: true, category, id: { not: excludeId } },
+    where: { active: true, categories: { hasSome: categories }, id: { not: excludeId } },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
     take: limit,
   });
@@ -44,9 +46,10 @@ export function getRelatedProducts(category: string, excludeId: string, limit = 
 
 /**
  * Produtos escolhidos manualmente no admin para "Você também vai gostar".
- * Sem curadoria definida, cai de volta para produtos da mesma categoria.
+ * Sem curadoria definida, cai de volta para produtos que compartilham
+ * alguma categoria.
  */
-export async function getCuratedRelatedProducts(productId: string, category: string, limit = 4) {
+export async function getCuratedRelatedProducts(productId: string, categories: string[], limit = 4) {
   const curated = await prisma.productRelation.findMany({
     where: { productId, relatedProduct: { active: true } },
     orderBy: { sortOrder: "asc" },
@@ -58,5 +61,5 @@ export async function getCuratedRelatedProducts(productId: string, category: str
     return curated.map((r) => r.relatedProduct);
   }
 
-  return getRelatedProducts(category, productId, limit);
+  return getRelatedProducts(categories, productId, limit);
 }

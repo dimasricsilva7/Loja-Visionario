@@ -20,7 +20,7 @@ export interface ProductFormValues {
   active: boolean;
   featured: boolean;
   sortOrder: string;
-  category: string;
+  categories: string[];
   installments: string;
   productIdBravoPay: string;
   relatedProductIds: string[];
@@ -40,13 +40,11 @@ const emptyValues: ProductFormValues = {
   active: true,
   featured: false,
   sortOrder: "0",
-  category: CANONICAL_CATEGORIES[0].name,
+  categories: [],
   installments: "1",
   productIdBravoPay: "",
   relatedProductIds: [],
 };
-
-const CATEGORY_OPTIONS = [...CANONICAL_CATEGORIES.map((c) => c.name), "Outra..."];
 
 function toCents(value: string): number | null {
   if (!value.trim()) return null;
@@ -64,10 +62,10 @@ interface ProductSummary {
 export function ProductForm({ initial }: { initial?: Partial<ProductFormValues> }) {
   const router = useRouter();
   const [values, setValues] = useState<ProductFormValues>({ ...emptyValues, ...initial });
-  const [customCategory, setCustomCategory] = useState(
-    initial?.category && !CANONICAL_CATEGORIES.some((c) => c.name === initial.category) ? initial.category : ""
+  const canonicalNames = CANONICAL_CATEGORIES.map((c) => c.name);
+  const [customCategoriesText, setCustomCategoriesText] = useState(
+    (initial?.categories ?? []).filter((c) => !canonicalNames.includes(c)).join(", ")
   );
-  const [isCustomCategory, setIsCustomCategory] = useState(Boolean(customCategory));
   const [allProducts, setAllProducts] = useState<ProductSummary[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -81,6 +79,13 @@ export function ProductForm({ initial }: { initial?: Partial<ProductFormValues> 
 
   function set<K extends keyof ProductFormValues>(key: K, value: ProductFormValues[K]) {
     setValues((v) => ({ ...v, [key]: value }));
+  }
+
+  function toggleCategory(name: string) {
+    setValues((v) => {
+      const already = v.categories.includes(name);
+      return { ...v, categories: already ? v.categories.filter((c) => c !== name) : [...v.categories, name] };
+    });
   }
 
   function toggleRelated(id: string) {
@@ -105,8 +110,12 @@ export function ProductForm({ initial }: { initial?: Partial<ProductFormValues> 
       return setError("Slug deve conter apenas letras minúsculas, números e hífens.");
     }
 
-    const finalCategory = isCustomCategory ? customCategory.trim() : values.category;
-    if (!finalCategory) return setError("Informe a categoria.");
+    const customCategories = customCategoriesText
+      .split(",")
+      .map((c) => c.trim())
+      .filter(Boolean);
+    const finalCategories = Array.from(new Set([...values.categories, ...customCategories]));
+    if (finalCategories.length === 0) return setError("Selecione pelo menos uma categoria.");
 
     setSaving(true);
     try {
@@ -127,7 +136,7 @@ export function ProductForm({ initial }: { initial?: Partial<ProductFormValues> 
         active: values.active,
         featured: values.featured,
         sortOrder: parseInt(values.sortOrder || "0", 10),
-        category: finalCategory,
+        categories: finalCategories,
         installments: Math.max(1, parseInt(values.installments || "1", 10)),
         productIdBravoPay: values.productIdBravoPay.trim() || null,
         relatedProductIds: values.relatedProductIds,
@@ -221,50 +230,52 @@ export function ProductForm({ initial }: { initial?: Partial<ProductFormValues> 
         </Row>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <Row label="Categoria (seção da home)">
-          <select
-            className="input"
-            value={isCustomCategory ? "Outra..." : values.category}
-            onChange={(e) => {
-              if (e.target.value === "Outra...") {
-                setIsCustomCategory(true);
-              } else {
-                setIsCustomCategory(false);
-                set("category", e.target.value);
-              }
-            }}
-          >
-            {CATEGORY_OPTIONS.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-          {isCustomCategory && (
-            <input
-              className="input mt-2"
-              placeholder="Nome da categoria"
-              value={customCategory}
-              onChange={(e) => setCustomCategory(e.target.value)}
-            />
-          )}
-          <span className="text-xs text-muted">
-            Só as 6 categorias fixas aparecem como seção na home. Uma categoria personalizada fica
-            acessível pelo produto, mas não ganha seção própria.
-          </span>
-        </Row>
-        <Row label="Parcelas no PIX (1 = à vista)">
-          <input
-            type="number"
-            min={1}
-            max={24}
-            className="input"
-            value={values.installments}
-            onChange={(e) => set("installments", e.target.value)}
-          />
-        </Row>
+      <div className="flex flex-col gap-2">
+        <p className="text-sm font-medium text-muted">
+          Categorias (o produto pode aparecer em mais de uma seção da home)
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {CANONICAL_CATEGORIES.map((c) => (
+            <label
+              key={c.name}
+              className={`cursor-pointer rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${
+                values.categories.includes(c.name)
+                  ? "border-brand bg-brand text-brand-fg"
+                  : "border-border text-muted hover:text-fg"
+              }`}
+            >
+              <input
+                type="checkbox"
+                className="sr-only"
+                checked={values.categories.includes(c.name)}
+                onChange={() => toggleCategory(c.name)}
+              />
+              {c.name}
+            </label>
+          ))}
+        </div>
+        <input
+          className="input mt-1"
+          placeholder="Outras categorias, separadas por vírgula (opcional)"
+          value={customCategoriesText}
+          onChange={(e) => setCustomCategoriesText(e.target.value)}
+        />
+        <span className="text-xs text-muted">
+          Só as 6 categorias fixas viram seção na home. Categorias personalizadas ficam acessíveis
+          pelo produto, mas não ganham seção própria.
+        </span>
       </div>
+
+      <Row label="Parcelas no PIX (1 = à vista)">
+        <input
+          type="number"
+          min={1}
+          max={24}
+          className="input max-w-40"
+          value={values.installments}
+          onChange={(e) => set("installments", e.target.value)}
+        />
+      </Row>
 
       <div className="grid grid-cols-2 gap-4">
         <Row label="Estoque">

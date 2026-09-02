@@ -93,7 +93,7 @@ model Product {
   active            Boolean  @default(true)
   featured          Boolean  @default(false)
   sortOrder         Int      @default(0)
-  category          String   @default("Geral")
+  categories        String[] @default(["Geral"])
   installments      Int      @default(1)
   productIdBravoPay String?
   createdAt         DateTime @default(now())

@@ -38,7 +38,7 @@ export default async function EditProductPage({ params }: PageProps) {
           active: product.active,
           featured: product.featured,
           sortOrder: String(product.sortOrder),
-          category: product.category,
+          categories: product.categories,
           installments: String(product.installments),
           productIdBravoPay: product.productIdBravoPay ?? "",
           relatedProductIds: relations.map((r) => r.relatedProductId),

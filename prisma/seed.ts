@@ -47,7 +47,7 @@ async function main() {
           active: true,
           featured: true,
           sortOrder: 1,
-          category: "Camisetas",
+          categories: ["Camisetas"],
           installments: 3,
         },
         {
@@ -63,7 +63,7 @@ async function main() {
           active: true,
           featured: true,
           sortOrder: 2,
-          category: "Moletons",
+          categories: ["Moletons"],
           installments: 3,
         },
         {
@@ -77,7 +77,7 @@ async function main() {
           active: true,
           featured: false,
           sortOrder: 3,
-          category: "Acessórios",
+          categories: ["Acessórios"],
         },
       ],
     });

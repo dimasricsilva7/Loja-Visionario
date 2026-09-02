@@ -96,7 +96,7 @@ export const productSchema = z.object({
   active: z.boolean().default(true),
   featured: z.boolean().default(false),
   sortOrder: z.number().int().default(0),
-  category: z.string().trim().min(1).max(60).default("Geral"),
+  categories: z.array(z.string().trim().min(1).max(60)).min(1, "Selecione ao menos uma categoria").default(["Geral"]),
   installments: z.number().int().min(1).max(24).default(1),
   productIdBravoPay: z.string().trim().max(150).nullable().optional(),
   relatedProductIds: z.array(z.string()).max(4).optional(),
