@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { formatCentsToBRL } from "@/lib/money";
+import { formatCentsToBRL, getChargedAmountCents } from "@/lib/money";
 import { formatBRPhone, formatCEP } from "@/lib/br-validators";
 import { CheckCircleIcon, ClockIcon } from "@/components/icons";
 import { CopyOrderCode } from "@/components/store/CopyOrderCode";
+import { PurchaseTracker } from "@/components/store/PurchaseTracker";
 
 export const metadata: Metadata = {
   title: "Pedido confirmado",
@@ -32,6 +33,18 @@ export default async function ObrigadoPage({ searchParams }: PageProps) {
 
   return (
     <div className="container-page flex flex-col items-center py-16 text-center sm:py-24">
+      {isPaid && order && (
+        <PurchaseTracker
+          // Mesmo eventId enviado pela Conversions API no webhook de pagamento,
+          // então a Meta deduplica em uma única conversão em vez de contar 2x.
+          eventId={`purchase_${order.id}`}
+          value={getChargedAmountCents(order) / 100}
+          currency="BRL"
+          orderId={order.orderNumber ?? order.id}
+          contentIds={order.items.map((i) => i.productId)}
+          numItems={order.items.reduce((sum, i) => sum + i.quantity, 0)}
+        />
+      )}
       <div
         className={`flex h-16 w-16 items-center justify-center rounded-full ${
           isPaid ? "bg-brand text-brand-fg" : "bg-surface-2 text-muted"
@@ -87,13 +100,7 @@ export default async function ObrigadoPage({ searchParams }: PageProps) {
               </div>
               <div className="flex justify-between font-bold">
                 <span>{order.paymentPlan === "PARCELADO" ? `1ª de ${order.installmentCount} parcelas` : "Total pago"}</span>
-                <span>
-                  {formatCentsToBRL(
-                    (order.paymentPlan === "PARCELADO"
-                      ? Math.ceil(order.totalCents / order.installmentCount)
-                      : order.totalCents) + order.shippingCents
-                  )}
-                </span>
+                <span>{formatCentsToBRL(getChargedAmountCents(order))}</span>
               </div>
             </div>
           </div>

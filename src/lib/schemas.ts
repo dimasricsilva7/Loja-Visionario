@@ -48,6 +48,7 @@ export const checkoutSchema = z.object({
   }),
   shipping: shippingAddressSchema,
   utm: utmSchema.optional(),
+  metaEventId: z.string().trim().max(100).optional(),
 });
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;

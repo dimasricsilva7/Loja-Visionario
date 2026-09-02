@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { checkoutSchema } from "@/lib/schemas";
@@ -7,6 +7,7 @@ import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { getCustomerSession } from "@/lib/customer-session";
 import { getStoreSettings } from "@/lib/settings";
 import { generateOrderNumber } from "@/lib/order-number";
+import { sendMetaEvent, normalizePhoneForMeta, splitName, buildFbcFromClickId } from "@/lib/meta-capi";
 
 const DUPLICATE_WINDOW_MS = 15 * 60 * 1000;
 
@@ -165,6 +166,46 @@ export async function POST(request: NextRequest) {
         },
       }),
     ]);
+
+    const confirmedOrder = order;
+
+    after(() => {
+      const { firstName, lastName } = splitName(customer.name);
+      const fbp = request.cookies.get("_fbp")?.value;
+      const fbcCookie = request.cookies.get("_fbc")?.value;
+      const fbc = fbcCookie || (utm?.fbclid ? buildFbcFromClickId(utm.fbclid, Date.now()) : undefined);
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+      void sendMetaEvent({
+        eventName: "InitiateCheckout",
+        eventId: parsed.data.metaEventId || randomUUID(),
+        eventSourceUrl: `${siteUrl}/checkout/${product.slug}`,
+        userData: {
+          email: customer.email,
+          phone: normalizePhoneForMeta(customer.phone),
+          firstName,
+          lastName,
+          city: shipping.city,
+          state: shipping.state,
+          zip: shipping.cep,
+          country: "br",
+          externalId: customer.cpf,
+          clientIpAddress: ip,
+          clientUserAgent: request.headers.get("user-agent") || undefined,
+          fbp,
+          fbc,
+        },
+        customData: {
+          currency: "BRL",
+          value: chargeAmountCents / 100,
+          contentIds: [product.id],
+          contentType: "product",
+          contents: [{ id: product.id, quantity, item_price: product.priceCents / 100 }],
+          numItems: quantity,
+          orderId: confirmedOrder.orderNumber ?? confirmedOrder.id,
+        },
+      });
+    });
 
     return NextResponse.json({
       orderId: order.id,

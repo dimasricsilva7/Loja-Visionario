@@ -19,6 +19,7 @@ import {
   type ProductSize,
 } from "@/lib/br-validators";
 import { getStoredUTM } from "@/lib/utm";
+import { getOrCreateSessionEventId, trackPixelEvent } from "@/lib/meta-pixel-client";
 import { CheckCircleIcon, LockIcon, TruckIcon } from "@/components/icons";
 
 interface CheckoutProduct {
@@ -95,6 +96,29 @@ export function CheckoutClient({
   const [loggedIn, setLoggedIn] = useState(false);
   const [accountPromptDismissed, setAccountPromptDismissed] = useState(false);
   const checkoutPath = `/checkout/${product.slug}${size ? `?tamanho=${size}` : ""}`;
+
+  const metaEventIdRef = useRef("");
+
+  useEffect(() => {
+    // Um único InitiateCheckout por sessão de checkout deste produto: o mesmo
+    // eventId é reenviado pelo servidor (Conversions API) ao confirmar o
+    // pedido, para a Meta deduplicar os dois sinais em um só evento.
+    const eventId = getOrCreateSessionEventId(`lv_ic_${product.slug}`);
+    metaEventIdRef.current = eventId;
+    trackPixelEvent(
+      "InitiateCheckout",
+      {
+        value: (product.priceCents * quantity + shippingCents) / 100,
+        currency: "BRL",
+        content_ids: [product.id],
+        content_type: "product",
+        contents: [{ id: product.id, quantity, item_price: product.priceCents / 100 }],
+        num_items: quantity,
+      },
+      eventId
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -221,6 +245,7 @@ export function CheckoutClient({
             state: state.trim(),
           },
           utm: getStoredUTM(),
+          metaEventId: metaEventIdRef.current || undefined,
         }),
       });
 
