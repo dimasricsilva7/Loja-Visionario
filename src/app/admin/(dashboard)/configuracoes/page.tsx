@@ -14,6 +14,7 @@ export default async function AdminSettingsPage() {
         initial={{
           storeName: settings.storeName,
           logoUrl: settings.logoUrl,
+          heroImageUrl: settings.heroImageUrl,
           offerCountdownMinutes: settings.offerCountdownMinutes,
         }}
       />

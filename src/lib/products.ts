@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { sortCategoriesCanonically } from "./categories";
 
 export function getActiveProducts() {
   return prisma.product.findMany({
@@ -29,7 +30,8 @@ export async function getProductsGroupedByCategory() {
     groups.get(key)!.push(product);
   }
 
-  return Array.from(groups.entries()).map(([category, items]) => ({ category, products: items }));
+  const list = Array.from(groups.entries()).map(([category, items]) => ({ category, products: items }));
+  return sortCategoriesCanonically(list);
 }
 
 export function getRelatedProducts(category: string, excludeId: string, limit = 4) {

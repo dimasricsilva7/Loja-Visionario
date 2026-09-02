@@ -19,6 +19,7 @@ model StoreSettings {
   id               String   @id @default("singleton")
   storeName        String   @default("Norte")
   logoUrl          String?
+  heroImageUrl     String?
   currency         String   @default("BRL")
   offerCountdownMinutes Int @default(15)
   updatedAt        DateTime @updatedAt

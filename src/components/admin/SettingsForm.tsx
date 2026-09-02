@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 
 interface Props {
-  initial: { storeName: string; logoUrl: string | null; offerCountdownMinutes: number };
+  initial: { storeName: string; logoUrl: string | null; heroImageUrl: string | null; offerCountdownMinutes: number };
 }
 
 export function SettingsForm({ initial }: Props) {
   const router = useRouter();
   const [storeName, setStoreName] = useState(initial.storeName);
   const [logoUrl, setLogoUrl] = useState(initial.logoUrl ?? "");
+  const [heroImageUrl, setHeroImageUrl] = useState(initial.heroImageUrl ?? "");
   const [minutes, setMinutes] = useState(String(initial.offerCountdownMinutes));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +31,7 @@ export function SettingsForm({ initial }: Props) {
         body: JSON.stringify({
           storeName: storeName.trim(),
           logoUrl: logoUrl.trim() || null,
+          heroImageUrl: heroImageUrl.trim() || null,
           offerCountdownMinutes: parseInt(minutes || "15", 10),
         }),
       });
@@ -59,6 +61,19 @@ export function SettingsForm({ initial }: Props) {
       <label className="flex flex-col gap-1.5 text-sm">
         <span className="font-medium text-muted">URL do logo (opcional)</span>
         <input className="input" value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder="https://..." />
+      </label>
+
+      <label className="flex flex-col gap-1.5 text-sm">
+        <span className="font-medium text-muted">URL da imagem da hero (opcional)</span>
+        <input
+          className="input"
+          value={heroImageUrl}
+          onChange={(e) => setHeroImageUrl(e.target.value)}
+          placeholder="https://..."
+        />
+        <span className="text-xs text-muted">
+          Envie sua própria foto/arte. Se vazio, usamos um fundo gerado automaticamente.
+        </span>
       </label>
 
       <label className="flex flex-col gap-1.5 text-sm">

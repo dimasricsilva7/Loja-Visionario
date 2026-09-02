@@ -23,20 +23,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Credenciais inválidas" }, { status: 401 });
   }
 
-  const admin = await prisma.adminUser.findUnique({ where: { email: parsed.data.email.toLowerCase() } });
-  if (!admin || !(await verifyPassword(parsed.data.password, admin.passwordHash))) {
-    return NextResponse.json({ error: "Credenciais inválidas" }, { status: 401 });
+  try {
+    const admin = await prisma.adminUser.findUnique({ where: { email: parsed.data.email.toLowerCase() } });
+    if (!admin || !(await verifyPassword(parsed.data.password, admin.passwordHash))) {
+      return NextResponse.json({ error: "Credenciais inválidas" }, { status: 401 });
+    }
+
+    const token = createSessionToken({ id: admin.id, email: admin.email });
+    const response = NextResponse.json({ ok: true });
+    response.cookies.set(ADMIN_COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: SESSION_MAX_AGE,
+    });
+
+    return response;
+  } catch (error) {
+    // Loga o motivo real no servidor (visível nos Runtime Logs da Vercel)
+    // sem expor detalhes de configuração para quem chama a rota.
+    console.error("Falha no login do admin", {
+      message: error instanceof Error ? error.message : "erro desconhecido",
+    });
+    return NextResponse.json(
+      { error: "Erro interno no servidor. Verifique a configuração e tente novamente." },
+      { status: 500 }
+    );
   }
-
-  const token = createSessionToken({ id: admin.id, email: admin.email });
-  const response = NextResponse.json({ ok: true });
-  response.cookies.set(ADMIN_COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: SESSION_MAX_AGE,
-  });
-
-  return response;
 }

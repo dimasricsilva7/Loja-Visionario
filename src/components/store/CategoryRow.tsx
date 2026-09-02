@@ -15,15 +15,17 @@ export function CategoryRow({
   category,
   subtitle,
   products,
+  tone = "dark",
 }: {
   category: string;
   subtitle?: string;
   products: Product[];
+  tone?: "dark" | "gray";
 }) {
   if (products.length === 0) return null;
 
   return (
-    <section className="border-b border-border py-8">
+    <section className={`border-b border-border py-8 ${tone === "gray" ? "bg-surface-2" : "bg-bg"}`}>
       <div className="container-page mb-4 flex items-end justify-between">
         <div>
           <h2 className="text-xl font-black tracking-tight sm:text-2xl">{category}</h2>

@@ -4,6 +4,7 @@ export const DEFAULT_STORE_SETTINGS = {
   id: "singleton",
   storeName: "Norte",
   logoUrl: null as string | null,
+  heroImageUrl: null as string | null,
   currency: "BRL",
   offerCountdownMinutes: 15,
 };
@@ -20,6 +21,7 @@ export async function getStoreSettings() {
 export async function upsertStoreSettings(data: {
   storeName: string;
   logoUrl?: string | null;
+  heroImageUrl?: string | null;
   offerCountdownMinutes: number;
 }) {
   return prisma.storeSettings.upsert({
