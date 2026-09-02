@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { UTMCapture } from "@/components/store/UTMCapture";
+import { getStoreSettings } from "@/lib/settings";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,15 +16,19 @@ const geistMono = Geist_Mono({
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: {
-    default: "Norte",
-    template: "%s | Norte",
-  },
-  description: "Peças exclusivas com entrega para todo o Brasil. Pagamento via PIX.",
-  robots: { index: true, follow: true },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getStoreSettings();
+
+  return {
+    metadataBase: new URL(siteUrl),
+    title: {
+      default: settings.storeName,
+      template: `%s | ${settings.storeName}`,
+    },
+    description: "Peças exclusivas com entrega para todo o Brasil. Pagamento via PIX.",
+    robots: { index: true, follow: true },
+  };
+}
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

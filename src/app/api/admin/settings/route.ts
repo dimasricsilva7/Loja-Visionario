@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdminApi } from "@/lib/auth-admin";
 import { getStoreSettings, upsertStoreSettings } from "@/lib/settings";
@@ -38,5 +39,12 @@ export async function PUT(request: NextRequest) {
   }
 
   const settings = await upsertStoreSettings(parsed.data);
+
+  // O layout da loja e o layout raiz (titulo/metadados) leem essas
+  // configuracoes; sem isso o cache de navegacao do Next pode continuar
+  // servindo a versao antiga em paginas ja visitadas.
+  revalidatePath("/", "layout");
+  revalidatePath("/admin", "layout");
+
   return NextResponse.json({ settings });
 }

@@ -13,7 +13,15 @@ const links = [
   { href: "/admin/configuracoes", label: "Configurações", Icon: SettingsIcon },
 ];
 
-export function AdminShell({ email, children }: { email: string; children: React.ReactNode }) {
+export function AdminShell({
+  email,
+  storeName,
+  children,
+}: {
+  email: string;
+  storeName: string;
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -58,7 +66,7 @@ export function AdminShell({ email, children }: { email: string; children: React
     <div className="flex min-h-screen w-full bg-bg">
       <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-surface lg:flex">
         <div className="flex h-16 items-center border-b border-border px-4 text-sm font-black tracking-tight">
-          PAINEL ADMIN
+          {storeName.toUpperCase()} · ADMIN
         </div>
         {Nav}
       </aside>
@@ -73,7 +81,7 @@ export function AdminShell({ email, children }: { email: string; children: React
           >
             <MenuIcon />
           </button>
-          <span className="text-sm font-bold lg:hidden">PAINEL ADMIN</span>
+          <span className="text-sm font-bold lg:hidden">{storeName.toUpperCase()} · ADMIN</span>
           <span className="ml-auto text-xs text-muted">{email}</span>
         </header>
 
@@ -85,7 +93,7 @@ export function AdminShell({ email, children }: { email: string; children: React
           <div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} />
           <div className="relative flex w-64 flex-col border-r border-border bg-surface">
             <div className="flex h-16 items-center justify-between border-b border-border px-4 text-sm font-black">
-              PAINEL ADMIN
+              {storeName.toUpperCase()} · ADMIN
               <button type="button" onClick={() => setOpen(false)} aria-label="Fechar menu">
                 <CloseIcon />
               </button>
