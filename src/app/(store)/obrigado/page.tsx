@@ -4,6 +4,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatCentsToBRL } from "@/lib/money";
 import { formatBRPhone, formatCEP } from "@/lib/br-validators";
+import { CheckCircleIcon, ClockIcon } from "@/components/icons";
+import { CopyOrderCode } from "@/components/store/CopyOrderCode";
 
 export const metadata: Metadata = {
   title: "Pedido confirmado",
@@ -31,11 +33,11 @@ export default async function ObrigadoPage({ searchParams }: PageProps) {
   return (
     <div className="container-page flex flex-col items-center py-16 text-center sm:py-24">
       <div
-        className={`flex h-16 w-16 items-center justify-center rounded-full text-3xl ${
+        className={`flex h-16 w-16 items-center justify-center rounded-full ${
           isPaid ? "bg-brand text-brand-fg" : "bg-surface-2 text-muted"
         }`}
       >
-        {isPaid ? "✓" : "⏳"}
+        {isPaid ? <CheckCircleIcon /> : <ClockIcon className="h-7 w-7" />}
       </div>
 
       <h1 className="mt-6 text-2xl font-black tracking-tight sm:text-3xl">
@@ -50,6 +52,13 @@ export default async function ObrigadoPage({ searchParams }: PageProps) {
 
       {order && item && (
         <div className="mt-8 flex w-full max-w-md flex-col gap-4 text-left">
+          <div className="rounded-lg border border-border bg-surface p-5 text-sm">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted">
+              Código do pedido (use para rastrear)
+            </p>
+            <CopyOrderCode code={order.id} />
+          </div>
+
           <div className="rounded-lg border border-border bg-surface p-5 text-sm">
             <p className="mb-3 text-xs font-bold uppercase tracking-wide text-muted">Pedido</p>
             <div className="flex gap-3">
@@ -91,9 +100,16 @@ export default async function ObrigadoPage({ searchParams }: PageProps) {
         </div>
       )}
 
-      <Link href="/" className="mt-8 text-sm font-semibold text-brand hover:underline">
-        Voltar para a loja
-      </Link>
+      <div className="mt-8 flex flex-col items-center gap-2">
+        {order && (
+          <Link href={`/rastreio?codigo=${order.id}`} className="text-sm font-semibold text-brand hover:underline">
+            Acompanhar status da entrega
+          </Link>
+        )}
+        <Link href="/" className="text-sm font-semibold text-muted hover:underline">
+          Voltar para a loja
+        </Link>
+      </div>
     </div>
   );
 }

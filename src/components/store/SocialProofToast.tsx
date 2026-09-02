@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { generateFakePurchaseEvent } from "@/lib/social-proof";
+import { CloseIcon } from "@/components/icons";
 
 interface ToastProduct {
   name: string;
@@ -40,7 +41,7 @@ export function SocialProofToast({ products }: { products: ToastProduct[] }) {
 
   return (
     <div
-      className={`fixed bottom-4 left-4 z-40 flex w-[calc(100%-2rem)] max-w-xs items-center gap-3 rounded-lg border border-border bg-surface p-3 shadow-card transition-all duration-500 sm:w-auto ${
+      className={`fixed bottom-20 left-4 z-40 flex w-[calc(100%-2rem)] max-w-xs items-center gap-3 rounded-lg border border-border bg-surface p-3 shadow-card transition-all duration-500 sm:bottom-4 sm:w-auto ${
         visible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0 pointer-events-none"
       }`}
     >
@@ -62,7 +63,7 @@ export function SocialProofToast({ products }: { products: ToastProduct[] }) {
         onClick={() => setDismissed(true)}
         className="shrink-0 self-start text-muted hover:text-fg"
       >
-        ✕
+        <CloseIcon />
       </button>
     </div>
   );

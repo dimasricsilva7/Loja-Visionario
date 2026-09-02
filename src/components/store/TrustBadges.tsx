@@ -1,37 +1,4 @@
-function TruckIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M2 7h11v9H2V7Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
-      <path d="M13 10h4l4 3.2V16h-8v-6Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
-      <circle cx="6" cy="17.5" r="1.6" stroke="currentColor" strokeWidth="1.6" />
-      <circle cx="17" cy="17.5" r="1.6" stroke="currentColor" strokeWidth="1.6" />
-    </svg>
-  );
-}
-
-function CardIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <rect x="2.5" y="5.5" width="19" height="13" rx="2" stroke="currentColor" strokeWidth="1.6" />
-      <path d="M2.5 9.5h19" stroke="currentColor" strokeWidth="1.6" />
-      <path d="M6 14h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function ShieldIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 2.5 20 6v6c0 5-3.4 8.4-8 9.5C7.4 20.4 4 17 4 12V6l8-3.5Z"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-      <path d="M8.5 12 11 14.5 15.5 9.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
+import { CardIcon, ShieldIcon, TruckIcon } from "@/components/icons";
 
 const items = [
   {

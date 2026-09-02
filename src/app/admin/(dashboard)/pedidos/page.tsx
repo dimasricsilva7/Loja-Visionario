@@ -24,6 +24,8 @@ export default async function AdminOrdersPage() {
     paymentPlan: order.paymentPlan,
     installmentCount: order.installmentCount,
     status: order.status,
+    fulfillmentStatus: order.fulfillmentStatus,
+    estimatedDeliveryDays: order.estimatedDeliveryDays,
     bravopayTransactionId: order.bravopayTransactionId,
     createdAt: order.createdAt.toISOString(),
     source: order.utm?.source ?? null,

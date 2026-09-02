@@ -56,6 +56,26 @@ export const adminLoginSchema = z.object({
   password: z.string().min(6),
 });
 
+export const customerRegisterSchema = z.object({
+  name: z.string().trim().min(3, "Nome muito curto").max(150),
+  email: z.string().trim().toLowerCase().email("E-mail inválido").max(150),
+  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres").max(100),
+  cpf: z.string().transform(onlyDigits).refine(isValidCPF, "CPF inválido"),
+  phone: z.string().transform(onlyDigits).refine(isValidBRPhone, "Telefone inválido"),
+  cep: z.string().transform(onlyDigits).refine(isValidCEP, "CEP inválido").optional().or(z.literal("")),
+  address: z.string().trim().max(200).optional(),
+  number: z.string().trim().max(20).optional(),
+  complement: z.string().trim().max(100).optional(),
+  neighborhood: z.string().trim().max(120).optional(),
+  city: z.string().trim().max(120).optional(),
+  state: z.string().trim().max(2).optional(),
+});
+
+export const customerLoginSchema = z.object({
+  email: z.string().trim().toLowerCase().email(),
+  password: z.string().min(1),
+});
+
 export const productSchema = z.object({
   name: z.string().trim().min(2).max(150),
   slug: z

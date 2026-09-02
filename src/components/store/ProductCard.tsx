@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/Badge";
 import { discountPercent, formatCentsToBRL } from "@/lib/money";
 import { getViewingNowCount } from "@/lib/social-proof";
 import { ViewingNowBadge } from "./ViewingNowBadge";
+import { BagIcon } from "@/components/icons";
 
 export function ProductCard({ product }: { product: Product }) {
   const outOfStock = product.stock <= 0;
@@ -27,7 +28,7 @@ export function ProductCard({ product }: { product: Product }) {
           className="object-cover transition duration-300 group-hover:scale-105"
         />
 
-        <ViewingNowBadge count={viewingNow} className="absolute left-2 top-2" />
+        <ViewingNowBadge count={viewingNow} compact className="absolute left-2 top-2 max-w-[62%]" />
 
         <div className="absolute right-2 top-2 flex flex-col items-end gap-1">
           {product.badge && <Badge label={product.badge} color={product.badgeColor} />}
@@ -59,7 +60,7 @@ export function ProductCard({ product }: { product: Product }) {
           )}
         </div>
         <span className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-md bg-brand py-2 text-xs font-bold text-brand-fg">
-          🛍 Comprar
+          <BagIcon /> Comprar
         </span>
       </div>
     </Link>

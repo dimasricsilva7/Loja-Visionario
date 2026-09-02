@@ -8,6 +8,8 @@ import { ViewingNowBadge } from "@/components/store/ViewingNowBadge";
 import { getCuratedRelatedProducts, getProductBySlug } from "@/lib/products";
 import { discountPercent, formatCentsToBRL } from "@/lib/money";
 import { getFakeRating, getRecentlySoldCount, getViewingNowCount } from "@/lib/social-proof";
+import { ClockIcon, RefreshIcon, ShieldIcon, StarIcon, TruckIcon } from "@/components/icons";
+import { FavoriteButton } from "@/components/store/FavoriteButton";
 
 export const dynamic = "force-dynamic";
 
@@ -75,6 +77,7 @@ export default async function ProductPage({ params }: PageProps) {
         <div className="flex flex-col gap-3">
           <div className="relative aspect-[4/5] w-full overflow-hidden rounded-lg border border-border bg-surface-2">
             <Image src={gallery[0]} alt={product.name} fill className="object-cover" priority sizes="(max-width: 1024px) 100vw, 50vw" />
+            <FavoriteButton productId={product.id} className="absolute right-3 top-3" />
           </div>
           {gallery.length > 1 && (
             <div className="grid grid-cols-4 gap-2">
@@ -89,9 +92,9 @@ export default async function ProductPage({ params }: PageProps) {
 
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-1 text-brand">
-              {"★★★★★".split("").map((star, i) => (
-                <span key={i}>{star}</span>
+            <div className="flex items-center gap-0.5 text-brand">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <StarIcon key={i} />
               ))}
               <span className="ml-1 text-xs font-semibold text-fg">
                 {rating} ({reviews} avaliações)
@@ -125,17 +128,29 @@ export default async function ProductPage({ params }: PageProps) {
               à vista no PIX, aprovação imediata
             </p>
           )}
-          <p className="text-xs text-muted">⏱ {recentlySold.toLocaleString("pt-BR")} vendidos recentemente</p>
+          <p className="flex items-center gap-1.5 text-xs text-muted">
+            <ClockIcon className="shrink-0" /> {recentlySold.toLocaleString("pt-BR")} vendidos recentemente
+          </p>
 
           <p className="whitespace-pre-line text-sm leading-relaxed text-muted">{product.description}</p>
 
           <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4">
             <ProductBuyBox slug={product.slug} outOfStock={outOfStock} />
 
-            <div className="grid grid-cols-3 gap-2 text-center text-[11px] text-muted">
-              <div className="rounded-md border border-border p-2">🚚 Frete p/ todo Brasil</div>
-              <div className="rounded-md border border-border p-2">🔒 Compra segura</div>
-              <div className="rounded-md border border-border p-2">🔁 Troca garantida</div>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: "Frete p/ todo Brasil", Icon: TruckIcon },
+                { label: "Compra segura", Icon: ShieldIcon },
+                { label: "Troca garantida", Icon: RefreshIcon },
+              ].map(({ label, Icon }) => (
+                <div
+                  key={label}
+                  className="flex flex-col items-center gap-1.5 rounded-md border border-border p-2.5 text-center"
+                >
+                  <Icon className="text-brand" />
+                  <span className="text-[10px] leading-tight text-muted">{label}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

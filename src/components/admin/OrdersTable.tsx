@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { StatusPill } from "./StatusPill";
 import { formatCentsToBRL } from "@/lib/money";
 import { maskCPF, formatBRPhone } from "@/lib/br-validators";
+import { FULFILLMENT_STAGES } from "@/lib/fulfillment";
 
 interface OrderRow {
   id: string;
@@ -18,10 +19,74 @@ interface OrderRow {
   paymentPlan: string;
   installmentCount: number;
   status: string;
+  fulfillmentStatus: string;
+  estimatedDeliveryDays: number | null;
   bravopayTransactionId: string | null;
   createdAt: string;
   source: string | null;
   address: string | null;
+}
+
+function FulfillmentSelect({ order }: { order: OrderRow }) {
+  const router = useRouter();
+  const [status, setStatus] = useState(order.fulfillmentStatus);
+  const [days, setDays] = useState(order.estimatedDeliveryDays ? String(order.estimatedDeliveryDays) : "5");
+  const [saving, setSaving] = useState(false);
+
+  async function save(nextStatus: string, nextDays?: string) {
+    setSaving(true);
+    try {
+      await fetch(`/api/admin/orders/${order.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fulfillmentStatus: nextStatus,
+          estimatedDeliveryDays: nextStatus === "ENVIADO" ? parseInt(nextDays ?? days, 10) : null,
+        }),
+      });
+      router.refresh();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (order.status !== "PAID") {
+    return <span className="text-xs text-muted">—</span>;
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      <select
+        value={status}
+        disabled={saving}
+        onChange={(e) => {
+          setStatus(e.target.value);
+          save(e.target.value);
+        }}
+        className="input h-8 text-xs"
+      >
+        {FULFILLMENT_STAGES.filter((s) => s.key !== "AGUARDANDO_PAGAMENTO").map((s) => (
+          <option key={s.key} value={s.key}>
+            {s.label}
+          </option>
+        ))}
+      </select>
+      {status === "ENVIADO" && (
+        <label className="flex items-center gap-1 text-[11px] text-muted">
+          Prazo (dias)
+          <input
+            type="number"
+            min={1}
+            max={90}
+            value={days}
+            onChange={(e) => setDays(e.target.value)}
+            onBlur={() => save(status, days)}
+            className="input h-6 w-14 px-1 text-[11px]"
+          />
+        </label>
+      )}
+    </div>
+  );
 }
 
 export function OrdersTable({ orders }: { orders: OrderRow[] }) {
@@ -53,7 +118,7 @@ export function OrdersTable({ orders }: { orders: OrderRow[] }) {
     <>
       {/* Desktop */}
       <div className="hidden overflow-x-auto rounded-lg border border-border bg-surface lg:block">
-        <table className="w-full min-w-[900px] text-sm">
+        <table className="w-full min-w-[1000px] text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted">
               <th className="p-3 font-semibold">Cliente</th>
@@ -61,7 +126,8 @@ export function OrdersTable({ orders }: { orders: OrderRow[] }) {
               <th className="p-3 font-semibold">Produto</th>
               <th className="p-3 font-semibold">Endereço</th>
               <th className="p-3 font-semibold">Valor</th>
-              <th className="p-3 font-semibold">Status</th>
+              <th className="p-3 font-semibold">Pagamento</th>
+              <th className="p-3 font-semibold">Entrega</th>
               <th className="p-3 font-semibold">Transação</th>
               <th className="p-3 font-semibold">Origem</th>
               <th className="p-3 font-semibold">Data</th>
@@ -93,6 +159,7 @@ export function OrdersTable({ orders }: { orders: OrderRow[] }) {
                   )}
                 </td>
                 <td className="p-3"><StatusPill status={order.status} /></td>
+                <td className="p-3"><FulfillmentSelect order={order} /></td>
                 <td className="p-3 font-mono text-xs text-muted">{order.bravopayTransactionId?.slice(0, 14) ?? "—"}</td>
                 <td className="p-3 text-xs text-muted">{order.source ?? "—"}</td>
                 <td className="p-3 text-xs text-muted">{new Date(order.createdAt).toLocaleString("pt-BR")}</td>
@@ -139,6 +206,11 @@ export function OrdersTable({ orders }: { orders: OrderRow[] }) {
                 </>
               )}
             </div>
+            {order.status === "PAID" && (
+              <div className="mt-3 border-t border-border pt-3">
+                <FulfillmentSelect order={order} />
+              </div>
+            )}
             <button
               type="button"
               onClick={() => setPendingDelete(order.id)}

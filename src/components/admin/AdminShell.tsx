@@ -4,12 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import clsx from "clsx";
+import { CloseIcon, DashboardIcon, LogoutIcon, MenuIcon, OrdersIcon, ProductsIcon, SettingsIcon } from "@/components/icons";
 
 const links = [
-  { href: "/admin", label: "Dashboard", icon: "📊" },
-  { href: "/admin/pedidos", label: "Pedidos", icon: "🧾" },
-  { href: "/admin/produtos", label: "Produtos", icon: "📦" },
-  { href: "/admin/configuracoes", label: "Configurações", icon: "⚙️" },
+  { href: "/admin", label: "Dashboard", Icon: DashboardIcon },
+  { href: "/admin/pedidos", label: "Pedidos", Icon: OrdersIcon },
+  { href: "/admin/produtos", label: "Produtos", Icon: ProductsIcon },
+  { href: "/admin/configuracoes", label: "Configurações", Icon: SettingsIcon },
 ];
 
 export function AdminShell({ email, children }: { email: string; children: React.ReactNode }) {
@@ -37,7 +38,7 @@ export function AdminShell({ email, children }: { email: string; children: React
               active ? "bg-brand text-brand-fg" : "text-muted hover:bg-surface-2 hover:text-fg"
             )}
           >
-            <span aria-hidden="true">{link.icon}</span>
+            <link.Icon />
             {link.label}
           </Link>
         );
@@ -47,7 +48,7 @@ export function AdminShell({ email, children }: { email: string; children: React
         onClick={handleLogout}
         className="mt-auto flex items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm font-medium text-muted transition hover:bg-surface-2 hover:text-danger"
       >
-        <span aria-hidden="true">🚪</span>
+        <LogoutIcon />
         Sair
       </button>
     </nav>
@@ -70,7 +71,7 @@ export function AdminShell({ email, children }: { email: string; children: React
             onClick={() => setOpen(true)}
             className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border lg:hidden"
           >
-            ☰
+            <MenuIcon />
           </button>
           <span className="text-sm font-bold lg:hidden">PAINEL ADMIN</span>
           <span className="ml-auto text-xs text-muted">{email}</span>
@@ -86,7 +87,7 @@ export function AdminShell({ email, children }: { email: string; children: React
             <div className="flex h-16 items-center justify-between border-b border-border px-4 text-sm font-black">
               PAINEL ADMIN
               <button type="button" onClick={() => setOpen(false)} aria-label="Fechar menu">
-                ✕
+                <CloseIcon />
               </button>
             </div>
             {Nav}

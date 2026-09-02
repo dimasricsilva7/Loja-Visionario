@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { checkoutSchema } from "@/lib/schemas";
 import { createPixTransaction, BravoPayError } from "@/lib/bravopay";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { getCustomerSession } from "@/lib/customer-session";
 
 const DUPLICATE_WINDOW_MS = 15 * 60 * 1000;
 
@@ -70,9 +71,11 @@ export async function POST(request: NextRequest) {
   }
 
   const externalReference = `pedido_${randomUUID()}`;
+  const customerSession = await getCustomerSession();
 
   const order = await prisma.order.create({
     data: {
+      customerId: customerSession?.sub,
       customerName: customer.name,
       customerEmail: customer.email,
       customerPhone: customer.phone,

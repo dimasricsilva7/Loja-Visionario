@@ -13,11 +13,11 @@ export function LogoMarquee({
 
   return (
     <div className="overflow-hidden border-b border-border bg-surface py-6">
-      <div className="flex w-max animate-[marquee_28s_linear_infinite] items-center gap-10 opacity-70">
+      <div className="flex w-max animate-[marquee_28s_linear_infinite] items-center gap-10">
         {items.map((_, i) => (
           <div key={i} className="flex items-center gap-10">
             {logo1Url ? (
-              <span className="relative block h-8 w-24">
+              <span className="relative block h-8 w-24 opacity-80 brightness-0 invert">
                 <Image src={logo1Url} alt="" fill className="object-contain" sizes="96px" />
               </span>
             ) : (
@@ -25,7 +25,7 @@ export function LogoMarquee({
             )}
 
             {logo2Url ? (
-              <span className="relative block h-10 w-10">
+              <span className="relative block h-10 w-10 opacity-80 brightness-0 invert">
                 <Image src={logo2Url} alt="" fill className="object-contain" sizes="40px" />
               </span>
             ) : (

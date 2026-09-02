@@ -15,6 +15,47 @@ enum OrderStatus {
   CANCELED
 }
 
+enum FulfillmentStatus {
+  AGUARDANDO_PAGAMENTO
+  SEPARANDO
+  ENVIADO
+  SAIU_PARA_ENTREGA
+  ENTREGUE
+}
+
+model Customer {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  cpf          String
+  phone        String
+  cep          String?
+  address      String?
+  number       String?
+  complement   String?
+  neighborhood String?
+  city         String?
+  state        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  orders    Order[]
+  favorites Favorite[]
+}
+
+model Favorite {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([customerId, productId])
+  @@index([customerId])
+}
+
 model StoreSettings {
   id               String   @id @default("singleton")
   storeName        String   @default("Norte")
@@ -56,6 +97,7 @@ model Product {
   updatedAt         DateTime @updatedAt
 
   orderItems OrderItem[]
+  favorites  Favorite[]
 
   relatedAsSource ProductRelation[] @relation("RelationSource")
   relatedAsTarget ProductRelation[] @relation("RelationTarget")
@@ -83,8 +125,13 @@ model Order {
   customerEmail          String
   customerPhone          String
   customerCpf            String
+  customerId             String?
+  customer               Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
   totalCents             Int
   status                 OrderStatus @default(PENDING)
+  fulfillmentStatus      FulfillmentStatus @default(AGUARDANDO_PAGAMENTO)
+  estimatedDeliveryDays  Int?
   externalReference      String    @unique
   bravopayTransactionId  String?   @unique
   pixCopyPaste           String?   @db.Text
@@ -112,6 +159,7 @@ model Order {
 
   @@index([status])
   @@index([createdAt])
+  @@index([customerId])
 }
 
 model OrderItem {

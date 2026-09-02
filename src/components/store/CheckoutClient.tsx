@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import QRCode from "react-qr-code";
 import { Button } from "@/components/ui/Button";
@@ -18,6 +19,7 @@ import {
   type ProductSize,
 } from "@/lib/br-validators";
 import { getStoredUTM } from "@/lib/utm";
+import { LockIcon } from "@/components/icons";
 
 interface CheckoutProduct {
   id: string;
@@ -76,6 +78,34 @@ export function CheckoutClient({
 
   const [payment, setPayment] = useState<PaymentState | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const [checkingAccount, setCheckingAccount] = useState(true);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [accountPromptDismissed, setAccountPromptDismissed] = useState(false);
+  const checkoutPath = `/checkout/${product.slug}${size ? `?tamanho=${size}` : ""}`;
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.customer) {
+          setLoggedIn(true);
+          setName(data.customer.name || "");
+          setEmail(data.customer.email || "");
+          setPhone(data.customer.phone || "");
+          setCpf(data.customer.cpf || "");
+          if (data.customer.cep) setCep(data.customer.cep);
+          if (data.customer.address) setAddress(data.customer.address);
+          if (data.customer.number) setNumber(data.customer.number);
+          if (data.customer.complement) setComplement(data.customer.complement);
+          if (data.customer.neighborhood) setNeighborhood(data.customer.neighborhood);
+          if (data.customer.city) setCity(data.customer.city);
+          if (data.customer.state) setState(data.customer.state);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setCheckingAccount(false));
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -216,6 +246,36 @@ export function CheckoutClient({
     <div className="container-page grid gap-8 py-8 sm:py-12 lg:grid-cols-[1fr_380px]">
       <div className="order-2 lg:order-1">
         {step === "form" ? (
+          <div className="flex flex-col gap-6">
+            {!checkingAccount && !loggedIn && !accountPromptDismissed && (
+              <div className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-muted">
+                  Tem conta ou quer criar uma pra acompanhar seus pedidos?
+                </p>
+                <div className="flex shrink-0 flex-wrap items-center gap-3">
+                  <Link
+                    href={`/conta/login?redirect=${encodeURIComponent(checkoutPath)}`}
+                    className="text-sm font-semibold text-brand hover:underline"
+                  >
+                    Entrar
+                  </Link>
+                  <Link
+                    href={`/conta/cadastro?redirect=${encodeURIComponent(checkoutPath)}`}
+                    className="text-sm font-semibold text-brand hover:underline"
+                  >
+                    Criar conta
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setAccountPromptDismissed(true)}
+                    className="text-sm text-muted hover:text-fg"
+                  >
+                    Continuar sem conta
+                  </button>
+                </div>
+              </div>
+            )}
+
           <form onSubmit={handleSubmit} className="flex flex-col gap-6">
             <div className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-5 sm:p-6">
               <h1 className="text-xl font-black tracking-tight">Tamanho</h1>
@@ -409,10 +469,11 @@ export function CheckoutClient({
             </Button>
 
             <div className="flex items-center gap-2 text-xs text-muted">
-              <span>🔒</span>
+              <LockIcon className="shrink-0" />
               <span>Seus dados estão protegidos e o pagamento é processado com segurança.</span>
             </div>
           </form>
+          </div>
         ) : (
           payment && <PaymentPanel payment={payment} copied={copied} onCopy={handleCopy} />
         )}
