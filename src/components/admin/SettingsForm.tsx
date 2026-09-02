@@ -11,6 +11,7 @@ interface Props {
     heroImageUrl: string | null;
     marqueeLogo1Url: string | null;
     marqueeLogo2Url: string | null;
+    shippingCents: number;
     offerCountdownMinutes: number;
   };
 }
@@ -22,6 +23,7 @@ export function SettingsForm({ initial }: Props) {
   const [heroImageUrl, setHeroImageUrl] = useState(initial.heroImageUrl ?? "");
   const [marqueeLogo1Url, setMarqueeLogo1Url] = useState(initial.marqueeLogo1Url ?? "");
   const [marqueeLogo2Url, setMarqueeLogo2Url] = useState(initial.marqueeLogo2Url ?? "");
+  const [shippingPrice, setShippingPrice] = useState((initial.shippingCents / 100).toFixed(2));
   const [minutes, setMinutes] = useState(String(initial.offerCountdownMinutes));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,6 +45,7 @@ export function SettingsForm({ initial }: Props) {
           heroImageUrl: heroImageUrl.trim() || null,
           marqueeLogo1Url: marqueeLogo1Url.trim() || null,
           marqueeLogo2Url: marqueeLogo2Url.trim() || null,
+          shippingCents: Math.max(0, Math.round(Number(shippingPrice.replace(",", ".")) * 100) || 0),
           offerCountdownMinutes: parseInt(minutes || "15", 10),
         }),
       });
@@ -107,6 +110,20 @@ export function SettingsForm({ initial }: Props) {
         />
         <span className="text-xs text-muted">
           A barra que fica passando no meio da home alterna essas duas imagens. Se vazio, usa o nome da loja.
+        </span>
+      </label>
+
+      <label className="flex flex-col gap-1.5 text-sm">
+        <span className="font-medium text-muted">Valor do frete (R$)</span>
+        <input
+          inputMode="decimal"
+          className="input"
+          value={shippingPrice}
+          onChange={(e) => setShippingPrice(e.target.value)}
+          placeholder="0.00"
+        />
+        <span className="text-xs text-muted">
+          Deixe 0 para frete grátis (mostra selo &ldquo;Frete grátis&rdquo; nos produtos).
         </span>
       </label>
 

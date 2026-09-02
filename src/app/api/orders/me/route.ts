@@ -15,6 +15,7 @@ export async function GET() {
   return NextResponse.json({
     orders: orders.map((order) => ({
       id: order.id,
+      orderNumber: order.orderNumber,
       status: order.status,
       fulfillmentStatus: order.fulfillmentStatus,
       estimatedDeliveryDays: order.estimatedDeliveryDays,

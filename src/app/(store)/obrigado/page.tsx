@@ -52,11 +52,17 @@ export default async function ObrigadoPage({ searchParams }: PageProps) {
 
       {order && item && (
         <div className="mt-8 flex w-full max-w-md flex-col gap-4 text-left">
-          <div className="rounded-lg border border-border bg-surface p-5 text-sm">
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted">
-              Código do pedido (use para rastrear)
+          <div className="rounded-lg border-2 border-brand bg-surface p-5 text-sm">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-brand">
+              Guarde este código do pedido
             </p>
-            <CopyOrderCode code={order.id} />
+            <p className="mb-2 text-2xl font-black tracking-wide">
+              #{order.orderNumber ?? order.id.slice(0, 8).toUpperCase()}
+            </p>
+            <p className="mb-2 text-xs text-muted">
+              Você vai precisar dele para rastrear a entrega em <strong>/rastreio</strong>.
+            </p>
+            <CopyOrderCode code={order.orderNumber ?? order.id} />
           </div>
 
           <div className="rounded-lg border border-border bg-surface p-5 text-sm">
@@ -68,12 +74,27 @@ export default async function ObrigadoPage({ searchParams }: PageProps) {
               <div>
                 <p className="font-semibold">{item.product.name}</p>
                 {item.size && <p className="text-xs text-muted">Tamanho: {item.size}</p>}
-                <p className="text-xs text-muted">Pedido #{order.id.slice(0, 10).toUpperCase()}</p>
               </div>
             </div>
-            <div className="mt-4 flex justify-between border-t border-border pt-3 font-bold">
-              <span>{order.paymentPlan === "PARCELADO" ? `1ª de ${order.installmentCount} parcelas` : "Total pago"}</span>
-              <span>{formatCentsToBRL(order.totalCents / (order.paymentPlan === "PARCELADO" ? order.installmentCount : 1))}</span>
+            <div className="mt-4 space-y-1 border-t border-border pt-3">
+              <div className="flex justify-between text-muted">
+                <span>Produto</span>
+                <span>{formatCentsToBRL(order.totalCents)}</span>
+              </div>
+              <div className="flex justify-between text-muted">
+                <span>Frete</span>
+                <span>{order.shippingCents === 0 ? "Grátis" : formatCentsToBRL(order.shippingCents)}</span>
+              </div>
+              <div className="flex justify-between font-bold">
+                <span>{order.paymentPlan === "PARCELADO" ? `1ª de ${order.installmentCount} parcelas` : "Total pago"}</span>
+                <span>
+                  {formatCentsToBRL(
+                    (order.paymentPlan === "PARCELADO"
+                      ? Math.ceil(order.totalCents / order.installmentCount)
+                      : order.totalCents) + order.shippingCents
+                  )}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -102,7 +123,10 @@ export default async function ObrigadoPage({ searchParams }: PageProps) {
 
       <div className="mt-8 flex flex-col items-center gap-2">
         {order && (
-          <Link href={`/rastreio?codigo=${order.id}`} className="text-sm font-semibold text-brand hover:underline">
+          <Link
+            href={`/rastreio?codigo=${order.orderNumber ?? order.id}`}
+            className="text-sm font-semibold text-brand hover:underline"
+          >
             Acompanhar status da entrega
           </Link>
         )}

@@ -14,6 +14,7 @@ export default async function AdminOrdersPage() {
 
   const serializable = orders.map((order) => ({
     id: order.id,
+    orderNumber: order.orderNumber,
     customerName: order.customerName,
     customerEmail: order.customerEmail,
     customerPhone: order.customerPhone,
@@ -21,6 +22,7 @@ export default async function AdminOrdersPage() {
     productName: order.items[0]?.product.name ?? "—",
     size: order.items[0]?.size ?? null,
     totalCents: order.totalCents,
+    shippingCents: order.shippingCents,
     paymentPlan: order.paymentPlan,
     installmentCount: order.installmentCount,
     status: order.status,

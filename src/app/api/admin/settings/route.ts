@@ -9,6 +9,7 @@ const settingsSchema = z.object({
   heroImageUrl: z.string().trim().url().nullable().optional(),
   marqueeLogo1Url: z.string().trim().url().nullable().optional(),
   marqueeLogo2Url: z.string().trim().url().nullable().optional(),
+  shippingCents: z.number().int().min(0).max(100000),
   offerCountdownMinutes: z.number().int().min(1).max(120),
 });
 

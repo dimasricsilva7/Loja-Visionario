@@ -45,6 +45,7 @@ export default async function CheckoutPage({ params, searchParams }: PageProps) 
       <OfferBar minutes={settings.offerCountdownMinutes} />
       <CheckoutClient
         initialSize={initialSize}
+        shippingCents={settings.shippingCents}
         product={{
           id: product.id,
           slug: product.slug,

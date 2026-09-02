@@ -26,9 +26,9 @@ export default async function AdminDashboardPage({ searchParams }: PageProps) {
 
   const [totalOrders, totalAgg, paidOrders, paidAgg, recentOrders] = await Promise.all([
     prisma.order.count({ where }),
-    prisma.order.aggregate({ where, _sum: { totalCents: true } }),
+    prisma.order.aggregate({ where, _sum: { totalCents: true, shippingCents: true } }),
     prisma.order.count({ where: { ...where, status: "PAID" } }),
-    prisma.order.aggregate({ where: { ...where, status: "PAID" }, _sum: { totalCents: true } }),
+    prisma.order.aggregate({ where: { ...where, status: "PAID" }, _sum: { totalCents: true, shippingCents: true } }),
     prisma.order.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -39,9 +39,15 @@ export default async function AdminDashboardPage({ searchParams }: PageProps) {
 
   const cards = [
     { label: "Pedidos gerados", value: totalOrders.toLocaleString("pt-BR") },
-    { label: "Valor de pedidos gerados", value: formatCentsToBRL(totalAgg._sum.totalCents ?? 0) },
+    {
+      label: "Valor de pedidos gerados",
+      value: formatCentsToBRL((totalAgg._sum.totalCents ?? 0) + (totalAgg._sum.shippingCents ?? 0)),
+    },
     { label: "Pedidos pagos", value: paidOrders.toLocaleString("pt-BR") },
-    { label: "Vendas aprovadas", value: formatCentsToBRL(paidAgg._sum.totalCents ?? 0) },
+    {
+      label: "Vendas aprovadas",
+      value: formatCentsToBRL((paidAgg._sum.totalCents ?? 0) + (paidAgg._sum.shippingCents ?? 0)),
+    },
   ];
 
   return (
@@ -91,7 +97,7 @@ export default async function AdminDashboardPage({ searchParams }: PageProps) {
                       <div className="text-xs text-muted">{maskCPF(order.customerCpf)}</div>
                     </td>
                     <td className="p-3">{order.items[0]?.product.name}</td>
-                    <td className="p-3 font-semibold">{formatCentsToBRL(order.totalCents)}</td>
+                    <td className="p-3 font-semibold">{formatCentsToBRL(order.totalCents + order.shippingCents)}</td>
                     <td className="p-3">
                       <StatusPill status={order.status} />
                     </td>

@@ -63,6 +63,7 @@ model StoreSettings {
   heroImageUrl     String?
   marqueeLogo1Url  String?
   marqueeLogo2Url  String?
+  shippingCents    Int      @default(0)
   currency         String   @default("BRL")
   offerCountdownMinutes Int @default(15)
   updatedAt        DateTime @updatedAt
@@ -128,7 +129,9 @@ model Order {
   customerId             String?
   customer               Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
 
+  orderNumber            String?   @unique
   totalCents             Int
+  shippingCents          Int       @default(0)
   status                 OrderStatus @default(PENDING)
   fulfillmentStatus      FulfillmentStatus @default(AGUARDANDO_PAGAMENTO)
   estimatedDeliveryDays  Int?

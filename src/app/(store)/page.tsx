@@ -34,6 +34,7 @@ export default async function HomePage() {
             subtitle={getCategorySubtitle(category)}
             products={products}
             tone={index % 2 === 0 ? "dark" : "gray"}
+            freeShipping={settings.shippingCents === 0}
           />
         ))}
       </div>

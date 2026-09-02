@@ -17,6 +17,7 @@ export default async function AdminSettingsPage() {
           heroImageUrl: settings.heroImageUrl,
           marqueeLogo1Url: settings.marqueeLogo1Url,
           marqueeLogo2Url: settings.marqueeLogo2Url,
+          shippingCents: settings.shippingCents,
           offerCountdownMinutes: settings.offerCountdownMinutes,
         }}
       />

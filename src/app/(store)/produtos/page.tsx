@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getActiveProducts } from "@/lib/products";
 import { sortCategoriesCanonically } from "@/lib/categories";
 import { ProductGrid } from "@/components/store/ProductGrid";
+import { getStoreSettings } from "@/lib/settings";
 
 export const metadata: Metadata = { title: "Todos os produtos" };
 export const dynamic = "force-dynamic";
@@ -13,7 +14,7 @@ interface PageProps {
 
 export default async function AllProductsPage({ searchParams }: PageProps) {
   const { categoria } = await searchParams;
-  const products = await getActiveProducts();
+  const [products, settings] = await Promise.all([getActiveProducts(), getStoreSettings()]);
 
   const categories = sortCategoriesCanonically(
     Array.from(new Set(products.map((p) => p.category))).map((category) => ({ category }))
@@ -49,7 +50,7 @@ export default async function AllProductsPage({ searchParams }: PageProps) {
         </div>
       </div>
 
-      <ProductGrid products={filtered} />
+      <ProductGrid products={filtered} freeShipping={settings.shippingCents === 0} />
     </div>
   );
 }

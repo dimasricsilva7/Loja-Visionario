@@ -9,6 +9,7 @@ import { FULFILLMENT_STAGES } from "@/lib/fulfillment";
 
 interface OrderRow {
   id: string;
+  orderNumber: string | null;
   customerName: string;
   customerEmail: string;
   customerPhone: string;
@@ -16,6 +17,7 @@ interface OrderRow {
   productName: string;
   size: string | null;
   totalCents: number;
+  shippingCents: number;
   paymentPlan: string;
   installmentCount: number;
   status: string;
@@ -121,6 +123,7 @@ export function OrdersTable({ orders }: { orders: OrderRow[] }) {
         <table className="w-full min-w-[1000px] text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted">
+              <th className="p-3 font-semibold">Pedido</th>
               <th className="p-3 font-semibold">Cliente</th>
               <th className="p-3 font-semibold">Contato</th>
               <th className="p-3 font-semibold">Produto</th>
@@ -137,6 +140,9 @@ export function OrdersTable({ orders }: { orders: OrderRow[] }) {
           <tbody>
             {orders.map((order) => (
               <tr key={order.id} className="border-b border-border last:border-none align-top">
+                <td className="p-3 font-mono text-xs font-bold text-brand">
+                  #{order.orderNumber ?? order.id.slice(0, 8).toUpperCase()}
+                </td>
                 <td className="p-3">
                   <div className="font-medium">{order.customerName}</div>
                   <div className="text-xs text-muted">{maskCPF(order.customerCpf)}</div>
@@ -153,7 +159,10 @@ export function OrdersTable({ orders }: { orders: OrderRow[] }) {
                   {order.address ?? "—"}
                 </td>
                 <td className="p-3 font-semibold">
-                  {formatCentsToBRL(order.totalCents)}
+                  {formatCentsToBRL(order.totalCents + order.shippingCents)}
+                  {order.shippingCents > 0 && (
+                    <div className="text-xs font-normal text-muted">frete {formatCentsToBRL(order.shippingCents)}</div>
+                  )}
                   {order.paymentPlan === "PARCELADO" && (
                     <div className="text-xs font-normal text-muted">{order.installmentCount}x parcelado</div>
                   )}
@@ -184,6 +193,9 @@ export function OrdersTable({ orders }: { orders: OrderRow[] }) {
           <div key={order.id} className="rounded-lg border border-border bg-surface p-4 text-sm">
             <div className="flex items-start justify-between gap-2">
               <div>
+                <p className="font-mono text-xs font-bold text-brand">
+                  #{order.orderNumber ?? order.id.slice(0, 8).toUpperCase()}
+                </p>
                 <p className="font-semibold">{order.customerName}</p>
                 <p className="text-xs text-muted">{maskCPF(order.customerCpf)}</p>
               </div>
@@ -194,7 +206,7 @@ export function OrdersTable({ orders }: { orders: OrderRow[] }) {
               {order.size && (<><span>Tamanho</span><span className="text-right text-fg">{order.size}</span></>)}
               <span>Valor</span>
               <span className="text-right font-semibold text-fg">
-                {formatCentsToBRL(order.totalCents)}
+                {formatCentsToBRL(order.totalCents + order.shippingCents)}
                 {order.paymentPlan === "PARCELADO" && ` (${order.installmentCount}x)`}
               </span>
               <span>Data</span><span className="text-right text-fg">{new Date(order.createdAt).toLocaleDateString("pt-BR")}</span>

@@ -16,11 +16,13 @@ export function CategoryRow({
   subtitle,
   products,
   tone = "dark",
+  freeShipping = false,
 }: {
   category: string;
   subtitle?: string;
   products: Product[];
   tone?: "dark" | "gray";
+  freeShipping?: boolean;
 }) {
   if (products.length === 0) return null;
 
@@ -39,7 +41,7 @@ export function CategoryRow({
       <div className="container-page flex gap-3 overflow-x-auto pb-2 sm:gap-4">
         {products.map((product) => (
           <div key={product.id} className="w-[46vw] shrink-0 sm:w-56">
-            <ProductCard product={product} />
+            <ProductCard product={product} freeShipping={freeShipping} />
           </div>
         ))}
       </div>

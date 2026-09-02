@@ -9,6 +9,7 @@ import { FULFILLMENT_STAGES, fulfillmentStageIndex } from "@/lib/fulfillment";
 
 interface CustomerOrder {
   id: string;
+  orderNumber: string | null;
   status: string;
   fulfillmentStatus: string;
   createdAt: string;
@@ -67,7 +68,7 @@ export function CustomerAccountView({ name, email }: { name: string; email: stri
               return (
                 <Link
                   key={order.id}
-                  href={`/rastreio?codigo=${order.id}`}
+                  href={`/rastreio?codigo=${order.orderNumber || order.id}`}
                   className="flex items-center gap-3 rounded-lg border border-border bg-surface p-4 transition hover:border-brand/60"
                 >
                   {order.item && (
@@ -78,6 +79,7 @@ export function CustomerAccountView({ name, email }: { name: string; email: stri
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold">{order.item?.name}</p>
                     <p className="text-xs text-muted">
+                      #{order.orderNumber ?? order.id.slice(0, 8).toUpperCase()} ·{" "}
                       {new Date(order.createdAt).toLocaleDateString("pt-BR")} · {formatCentsToBRL(order.totalCents)}
                     </p>
                   </div>
