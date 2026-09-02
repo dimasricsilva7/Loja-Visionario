@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { ProductBuyBox } from "@/components/store/ProductBuyBox";
 import { ProductCard } from "@/components/store/ProductCard";
-import { getProductBySlug, getRelatedProducts } from "@/lib/products";
+import { ViewingNowBadge } from "@/components/store/ViewingNowBadge";
+import { getCuratedRelatedProducts, getProductBySlug } from "@/lib/products";
 import { discountPercent, formatCentsToBRL } from "@/lib/money";
 import { getFakeRating, getRecentlySoldCount, getViewingNowCount } from "@/lib/social-proof";
 
@@ -47,7 +48,7 @@ export default async function ProductPage({ params }: PageProps) {
   const { rating, reviews } = getFakeRating(product.id);
   const viewingNow = getViewingNowCount(product.id);
   const recentlySold = getRecentlySoldCount(product.id);
-  const related = await getRelatedProducts(product.category, product.id);
+  const related = await getCuratedRelatedProducts(product.id, product.category);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -66,6 +67,7 @@ export default async function ProductPage({ params }: PageProps) {
   };
 
   return (
+    <div className="theme-light bg-bg text-fg">
     <div className="container-page py-8 sm:py-12">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
@@ -95,7 +97,7 @@ export default async function ProductPage({ params }: PageProps) {
                 {rating} ({reviews} avaliações)
               </span>
             </div>
-            <span className="text-xs text-muted">👤 {viewingNow.toLocaleString("pt-BR")} vendo agora</span>
+            <ViewingNowBadge count={viewingNow} />
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -151,6 +153,7 @@ export default async function ProductPage({ params }: PageProps) {
           </div>
         </section>
       )}
+    </div>
     </div>
   );
 }

@@ -1,8 +1,9 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { CANONICAL_CATEGORIES } from "@/lib/categories";
 
 export interface ProductFormValues {
   id?: string;
@@ -22,6 +23,7 @@ export interface ProductFormValues {
   category: string;
   installments: string;
   productIdBravoPay: string;
+  relatedProductIds: string[];
 }
 
 const emptyValues: ProductFormValues = {
@@ -38,10 +40,13 @@ const emptyValues: ProductFormValues = {
   active: true,
   featured: false,
   sortOrder: "0",
-  category: "Geral",
+  category: CANONICAL_CATEGORIES[0].name,
   installments: "1",
   productIdBravoPay: "",
+  relatedProductIds: [],
 };
+
+const CATEGORY_OPTIONS = [...CANONICAL_CATEGORIES.map((c) => c.name), "Outra..."];
 
 function toCents(value: string): number | null {
   if (!value.trim()) return null;
@@ -50,14 +55,41 @@ function toCents(value: string): number | null {
   return Math.round(num * 100);
 }
 
+interface ProductSummary {
+  id: string;
+  name: string;
+  image: string;
+}
+
 export function ProductForm({ initial }: { initial?: Partial<ProductFormValues> }) {
   const router = useRouter();
   const [values, setValues] = useState<ProductFormValues>({ ...emptyValues, ...initial });
+  const [customCategory, setCustomCategory] = useState(
+    initial?.category && !CANONICAL_CATEGORIES.some((c) => c.name === initial.category) ? initial.category : ""
+  );
+  const [isCustomCategory, setIsCustomCategory] = useState(Boolean(customCategory));
+  const [allProducts, setAllProducts] = useState<ProductSummary[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  useEffect(() => {
+    fetch("/api/admin/products")
+      .then((res) => res.json())
+      .then((data) => setAllProducts(data.products || []))
+      .catch(() => setAllProducts([]));
+  }, []);
+
   function set<K extends keyof ProductFormValues>(key: K, value: ProductFormValues[K]) {
     setValues((v) => ({ ...v, [key]: value }));
+  }
+
+  function toggleRelated(id: string) {
+    setValues((v) => {
+      const already = v.relatedProductIds.includes(id);
+      if (already) return { ...v, relatedProductIds: v.relatedProductIds.filter((r) => r !== id) };
+      if (v.relatedProductIds.length >= 4) return v;
+      return { ...v, relatedProductIds: [...v.relatedProductIds, id] };
+    });
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -72,6 +104,9 @@ export function ProductForm({ initial }: { initial?: Partial<ProductFormValues> 
     if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(values.slug)) {
       return setError("Slug deve conter apenas letras minúsculas, números e hífens.");
     }
+
+    const finalCategory = isCustomCategory ? customCategory.trim() : values.category;
+    if (!finalCategory) return setError("Informe a categoria.");
 
     setSaving(true);
     try {
@@ -92,9 +127,10 @@ export function ProductForm({ initial }: { initial?: Partial<ProductFormValues> 
         active: values.active,
         featured: values.featured,
         sortOrder: parseInt(values.sortOrder || "0", 10),
-        category: values.category.trim() || "Geral",
+        category: finalCategory,
         installments: Math.max(1, parseInt(values.installments || "1", 10)),
         productIdBravoPay: values.productIdBravoPay.trim() || null,
+        relatedProductIds: values.relatedProductIds,
       };
 
       const url = values.id ? `/api/admin/products/${values.id}` : "/api/admin/products";
@@ -186,14 +222,37 @@ export function ProductForm({ initial }: { initial?: Partial<ProductFormValues> 
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <Row label="Categoria">
-          <input
-            required
+        <Row label="Categoria (seção da home)">
+          <select
             className="input"
-            placeholder="Camisetas, Moletons, Acessórios..."
-            value={values.category}
-            onChange={(e) => set("category", e.target.value)}
-          />
+            value={isCustomCategory ? "Outra..." : values.category}
+            onChange={(e) => {
+              if (e.target.value === "Outra...") {
+                setIsCustomCategory(true);
+              } else {
+                setIsCustomCategory(false);
+                set("category", e.target.value);
+              }
+            }}
+          >
+            {CATEGORY_OPTIONS.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+          {isCustomCategory && (
+            <input
+              className="input mt-2"
+              placeholder="Nome da categoria"
+              value={customCategory}
+              onChange={(e) => setCustomCategory(e.target.value)}
+            />
+          )}
+          <span className="text-xs text-muted">
+            Só as 6 categorias fixas aparecem como seção na home. Uma categoria personalizada fica
+            acessível pelo produto, mas não ganha seção própria.
+          </span>
         </Row>
         <Row label="Parcelas no PIX (1 = à vista)">
           <input
@@ -246,6 +305,28 @@ export function ProductForm({ initial }: { initial?: Partial<ProductFormValues> 
           <input type="checkbox" checked={values.featured} onChange={(e) => set("featured", e.target.checked)} />
           Destaque
         </label>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <p className="text-sm font-medium text-muted">
+          &ldquo;Você também vai gostar&rdquo; — escolha até 4 produtos ({values.relatedProductIds.length}/4)
+        </p>
+        <div className="grid max-h-56 grid-cols-2 gap-2 overflow-y-auto rounded-md border border-border p-3 sm:grid-cols-3">
+          {allProducts
+            .filter((p) => p.id !== values.id)
+            .map((p) => (
+              <label key={p.id} className="flex items-center gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  checked={values.relatedProductIds.includes(p.id)}
+                  onChange={() => toggleRelated(p.id)}
+                  disabled={!values.relatedProductIds.includes(p.id) && values.relatedProductIds.length >= 4}
+                />
+                <span className="truncate">{p.name}</span>
+              </label>
+            ))}
+          {allProducts.length === 0 && <p className="text-xs text-muted">Nenhum outro produto cadastrado ainda.</p>}
+        </div>
       </div>
 
       {error && <p className="text-sm font-medium text-danger">{error}</p>}

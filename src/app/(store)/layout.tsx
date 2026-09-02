@@ -9,7 +9,7 @@ export default async function StoreLayout({ children }: { children: React.ReactN
 
   return (
     <div className="flex min-h-screen w-full flex-col">
-      <Header storeName={settings.storeName} />
+      <Header storeName={settings.storeName} logoUrl={settings.logoUrl} />
       <main className="flex-1">{children}</main>
       <Footer storeName={settings.storeName} />
     </div>

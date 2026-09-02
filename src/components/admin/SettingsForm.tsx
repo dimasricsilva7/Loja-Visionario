@@ -5,7 +5,14 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 
 interface Props {
-  initial: { storeName: string; logoUrl: string | null; heroImageUrl: string | null; offerCountdownMinutes: number };
+  initial: {
+    storeName: string;
+    logoUrl: string | null;
+    heroImageUrl: string | null;
+    marqueeLogo1Url: string | null;
+    marqueeLogo2Url: string | null;
+    offerCountdownMinutes: number;
+  };
 }
 
 export function SettingsForm({ initial }: Props) {
@@ -13,6 +20,8 @@ export function SettingsForm({ initial }: Props) {
   const [storeName, setStoreName] = useState(initial.storeName);
   const [logoUrl, setLogoUrl] = useState(initial.logoUrl ?? "");
   const [heroImageUrl, setHeroImageUrl] = useState(initial.heroImageUrl ?? "");
+  const [marqueeLogo1Url, setMarqueeLogo1Url] = useState(initial.marqueeLogo1Url ?? "");
+  const [marqueeLogo2Url, setMarqueeLogo2Url] = useState(initial.marqueeLogo2Url ?? "");
   const [minutes, setMinutes] = useState(String(initial.offerCountdownMinutes));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,6 +41,8 @@ export function SettingsForm({ initial }: Props) {
           storeName: storeName.trim(),
           logoUrl: logoUrl.trim() || null,
           heroImageUrl: heroImageUrl.trim() || null,
+          marqueeLogo1Url: marqueeLogo1Url.trim() || null,
+          marqueeLogo2Url: marqueeLogo2Url.trim() || null,
           offerCountdownMinutes: parseInt(minutes || "15", 10),
         }),
       });
@@ -73,6 +84,29 @@ export function SettingsForm({ initial }: Props) {
         />
         <span className="text-xs text-muted">
           Envie sua própria foto/arte. Se vazio, usamos um fundo gerado automaticamente.
+        </span>
+      </label>
+
+      <label className="flex flex-col gap-1.5 text-sm">
+        <span className="font-medium text-muted">Logo 1 da barra rotativa (opcional)</span>
+        <input
+          className="input"
+          value={marqueeLogo1Url}
+          onChange={(e) => setMarqueeLogo1Url(e.target.value)}
+          placeholder="https://..."
+        />
+      </label>
+
+      <label className="flex flex-col gap-1.5 text-sm">
+        <span className="font-medium text-muted">Logo 2 da barra rotativa (opcional)</span>
+        <input
+          className="input"
+          value={marqueeLogo2Url}
+          onChange={(e) => setMarqueeLogo2Url(e.target.value)}
+          placeholder="https://..."
+        />
+        <span className="text-xs text-muted">
+          A barra que fica passando no meio da home alterna essas duas imagens. Se vazio, usa o nome da loja.
         </span>
       </label>
 

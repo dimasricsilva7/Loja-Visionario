@@ -4,6 +4,7 @@ import type { Product } from "@prisma/client";
 import { Badge } from "@/components/ui/Badge";
 import { discountPercent, formatCentsToBRL } from "@/lib/money";
 import { getViewingNowCount } from "@/lib/social-proof";
+import { ViewingNowBadge } from "./ViewingNowBadge";
 
 export function ProductCard({ product }: { product: Product }) {
   const outOfStock = product.stock <= 0;
@@ -26,10 +27,7 @@ export function ProductCard({ product }: { product: Product }) {
           className="object-cover transition duration-300 group-hover:scale-105"
         />
 
-        <div className="absolute left-2 top-2 flex items-center gap-1 rounded-sm bg-black/70 px-2 py-1 text-[10px] font-semibold text-white">
-          <span aria-hidden="true">👤</span>
-          {viewingNow.toLocaleString("pt-BR")} vendo agora
-        </div>
+        <ViewingNowBadge count={viewingNow} className="absolute left-2 top-2" />
 
         <div className="absolute right-2 top-2 flex flex-col items-end gap-1">
           {product.badge && <Badge label={product.badge} color={product.badgeColor} />}

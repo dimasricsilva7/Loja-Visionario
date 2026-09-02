@@ -7,6 +7,8 @@ const settingsSchema = z.object({
   storeName: z.string().trim().min(2).max(80),
   logoUrl: z.string().trim().url().nullable().optional(),
   heroImageUrl: z.string().trim().url().nullable().optional(),
+  marqueeLogo1Url: z.string().trim().url().nullable().optional(),
+  marqueeLogo2Url: z.string().trim().url().nullable().optional(),
   offerCountdownMinutes: z.number().int().min(1).max(120),
 });
 

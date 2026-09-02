@@ -41,8 +41,25 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
   }
 
+  const { relatedProductIds, ...productData } = parsed.data;
+
   try {
-    const product = await prisma.product.update({ where: { id }, data: parsed.data });
+    const product = await prisma.product.update({ where: { id }, data: productData });
+
+    if (relatedProductIds !== undefined) {
+      await prisma.productRelation.deleteMany({ where: { productId: id } });
+      if (relatedProductIds.length > 0) {
+        await prisma.productRelation.createMany({
+          data: relatedProductIds.map((relatedProductId, i) => ({
+            productId: id,
+            relatedProductId,
+            sortOrder: i,
+          })),
+          skipDuplicates: true,
+        });
+      }
+    }
+
     return NextResponse.json({ product });
   } catch {
     return NextResponse.json({ error: "Produto não encontrado" }, { status: 404 });

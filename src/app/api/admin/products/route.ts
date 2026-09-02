@@ -27,11 +27,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Dados inválidos", issues: parsed.error.flatten() }, { status: 400 });
   }
 
-  const existingSlug = await prisma.product.findUnique({ where: { slug: parsed.data.slug } });
+  const { relatedProductIds, ...productData } = parsed.data;
+
+  const existingSlug = await prisma.product.findUnique({ where: { slug: productData.slug } });
   if (existingSlug) {
     return NextResponse.json({ error: "Já existe um produto com esse slug" }, { status: 409 });
   }
 
-  const product = await prisma.product.create({ data: parsed.data });
+  const product = await prisma.product.create({ data: productData });
+
+  if (relatedProductIds && relatedProductIds.length > 0) {
+    await prisma.productRelation.createMany({
+      data: relatedProductIds.map((relatedProductId, i) => ({
+        productId: product.id,
+        relatedProductId,
+        sortOrder: i,
+      })),
+      skipDuplicates: true,
+    });
+  }
+
   return NextResponse.json({ product }, { status: 201 });
 }

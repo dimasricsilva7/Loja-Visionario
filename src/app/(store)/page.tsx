@@ -6,16 +6,20 @@ import { LogoMarquee } from "@/components/store/LogoMarquee";
 import { SocialProofToast } from "@/components/store/SocialProofToast";
 import { getActiveProducts, getProductsGroupedByCategory } from "@/lib/products";
 import { getStoreSettings } from "@/lib/settings";
-import { getCategorySubtitle } from "@/lib/categories";
+import { getCategorySubtitle, isCanonicalCategory } from "@/lib/categories";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [groups, settings, allProducts] = await Promise.all([
+  const [allGroups, settings, allProducts] = await Promise.all([
     getProductsGroupedByCategory(),
     getStoreSettings(),
     getActiveProducts(),
   ]);
+
+  // Só as 6 categorias fixas aparecem como seções na home; outras
+  // categorias continuam acessíveis pelo produto/checkout diretamente.
+  const groups = allGroups.filter((g) => isCanonicalCategory(g.category));
 
   return (
     <>
@@ -34,7 +38,11 @@ export default async function HomePage() {
         ))}
       </div>
 
-      <LogoMarquee storeName={settings.storeName} />
+      <LogoMarquee
+        storeName={settings.storeName}
+        logo1Url={settings.marqueeLogo1Url}
+        logo2Url={settings.marqueeLogo2Url}
+      />
       <Testimonials />
 
       <SocialProofToast

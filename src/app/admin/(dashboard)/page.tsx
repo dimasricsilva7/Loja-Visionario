@@ -4,11 +4,25 @@ import { prisma } from "@/lib/prisma";
 import { formatCentsToBRL } from "@/lib/money";
 import { maskCPF } from "@/lib/br-validators";
 import { StatusPill } from "@/components/admin/StatusPill";
+import { DashboardDateFilter } from "@/components/admin/DashboardDateFilter";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
-export default async function AdminDashboardPage() {
-  const where = { deletedAt: null };
+interface PageProps {
+  searchParams: Promise<{ from?: string; to?: string }>;
+}
+
+export default async function AdminDashboardPage({ searchParams }: PageProps) {
+  const { from, to } = await searchParams;
+
+  const createdAt: { gte?: Date; lte?: Date } = {};
+  if (from) createdAt.gte = new Date(`${from}T00:00:00`);
+  if (to) createdAt.lte = new Date(`${to}T23:59:59.999`);
+
+  const where = {
+    deletedAt: null,
+    ...(from || to ? { createdAt } : {}),
+  };
 
   const [totalOrders, totalAgg, paidOrders, paidAgg, recentOrders] = await Promise.all([
     prisma.order.count({ where }),
@@ -32,7 +46,10 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-black tracking-tight">Dashboard</h1>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-xl font-black tracking-tight">Dashboard</h1>
+        <DashboardDateFilter />
+      </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card) => (
@@ -52,7 +69,7 @@ export default async function AdminDashboardPage() {
         </div>
 
         {recentOrders.length === 0 ? (
-          <p className="p-6 text-center text-sm text-muted">Nenhum pedido ainda.</p>
+          <p className="p-6 text-center text-sm text-muted">Nenhum pedido no período selecionado.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-sm">

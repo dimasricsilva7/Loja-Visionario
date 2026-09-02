@@ -41,3 +41,22 @@ export function getRelatedProducts(category: string, excludeId: string, limit = 
     take: limit,
   });
 }
+
+/**
+ * Produtos escolhidos manualmente no admin para "Você também vai gostar".
+ * Sem curadoria definida, cai de volta para produtos da mesma categoria.
+ */
+export async function getCuratedRelatedProducts(productId: string, category: string, limit = 4) {
+  const curated = await prisma.productRelation.findMany({
+    where: { productId, relatedProduct: { active: true } },
+    orderBy: { sortOrder: "asc" },
+    take: limit,
+    include: { relatedProduct: true },
+  });
+
+  if (curated.length > 0) {
+    return curated.map((r) => r.relatedProduct);
+  }
+
+  return getRelatedProducts(category, productId, limit);
+}

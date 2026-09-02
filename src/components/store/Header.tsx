@@ -1,9 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-export function Header({ storeName }: { storeName: string }) {
+export function Header({ storeName, logoUrl }: { storeName: string; logoUrl?: string | null }) {
   const [open, setOpen] = useState(false);
 
   const navLinks = [
@@ -43,8 +44,14 @@ export function Header({ storeName }: { storeName: string }) {
           </button>
         </div>
 
-        <Link href="/" className="justify-self-center text-lg font-black tracking-widest">
-          {storeName.toUpperCase()}
+        <Link href="/" className="justify-self-center">
+          {logoUrl ? (
+            <span className="relative block h-9 w-32">
+              <Image src={logoUrl} alt={storeName} fill className="object-contain" sizes="128px" />
+            </span>
+          ) : (
+            <span className="text-lg font-black tracking-widest">{storeName.toUpperCase()}</span>
+          )}
         </Link>
 
         <Link

@@ -11,6 +11,10 @@ export function getCategorySubtitle(category: string): string | undefined {
   return CANONICAL_CATEGORIES.find((c) => c.name === category)?.subtitle;
 }
 
+export function isCanonicalCategory(category: string): boolean {
+  return CANONICAL_CATEGORIES.some((c) => c.name === category);
+}
+
 export function sortCategoriesCanonically<T extends { category: string }>(groups: T[]): T[] {
   const order = new Map(CANONICAL_CATEGORIES.map((c, i) => [c.name, i]));
   return [...groups].sort((a, b) => {

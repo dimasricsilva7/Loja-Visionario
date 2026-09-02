@@ -128,3 +128,15 @@ body {
 .input::placeholder {
   color: var(--color-muted);
 }
+
+/* Seções específicas (ex: página de produto) que usam fundo claro em vez
+   do tema escuro padrão da loja — os componentes continuam usando as
+   mesmas classes (bg-bg, text-fg, border-border...), só os tokens mudam. */
+.theme-light {
+  --color-bg: #ffffff;
+  --color-surface: #f7f7f7;
+  --color-surface-2: #eeeeee;
+  --color-border: #e2e2e2;
+  --color-fg: #0a0a0a;
+  --color-muted: #6b6b6b;
+}

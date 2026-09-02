@@ -5,6 +5,8 @@ export const DEFAULT_STORE_SETTINGS = {
   storeName: "Norte",
   logoUrl: null as string | null,
   heroImageUrl: null as string | null,
+  marqueeLogo1Url: null as string | null,
+  marqueeLogo2Url: null as string | null,
   currency: "BRL",
   offerCountdownMinutes: 15,
 };
@@ -22,6 +24,8 @@ export async function upsertStoreSettings(data: {
   storeName: string;
   logoUrl?: string | null;
   heroImageUrl?: string | null;
+  marqueeLogo1Url?: string | null;
+  marqueeLogo2Url?: string | null;
   offerCountdownMinutes: number;
 }) {
   return prisma.storeSettings.upsert({

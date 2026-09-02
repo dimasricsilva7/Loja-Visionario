@@ -78,6 +78,7 @@ export const productSchema = z.object({
   category: z.string().trim().min(1).max(60).default("Geral"),
   installments: z.number().int().min(1).max(24).default(1),
   productIdBravoPay: z.string().trim().max(150).nullable().optional(),
+  relatedProductIds: z.array(z.string()).max(4).optional(),
 });
 
 export type ProductInput = z.infer<typeof productSchema>;

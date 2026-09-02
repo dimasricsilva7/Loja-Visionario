@@ -20,6 +20,8 @@ model StoreSettings {
   storeName        String   @default("Norte")
   logoUrl          String?
   heroImageUrl     String?
+  marqueeLogo1Url  String?
+  marqueeLogo2Url  String?
   currency         String   @default("BRL")
   offerCountdownMinutes Int @default(15)
   updatedAt        DateTime @updatedAt
@@ -55,9 +57,24 @@ model Product {
 
   orderItems OrderItem[]
 
+  relatedAsSource ProductRelation[] @relation("RelationSource")
+  relatedAsTarget ProductRelation[] @relation("RelationTarget")
+
   @@index([active])
   @@index([featured])
   @@index([sortOrder])
+}
+
+model ProductRelation {
+  id               String  @id @default(cuid())
+  productId        String
+  product          Product @relation("RelationSource", fields: [productId], references: [id], onDelete: Cascade)
+  relatedProductId String
+  relatedProduct   Product @relation("RelationTarget", fields: [relatedProductId], references: [id], onDelete: Cascade)
+  sortOrder        Int     @default(0)
+
+  @@unique([productId, relatedProductId])
+  @@index([productId])
 }
 
 model Order {
