@@ -38,7 +38,7 @@ export function CategoryRow({
         </Link>
       </div>
 
-      <div className="container-page flex gap-3 overflow-x-auto pb-2 sm:gap-4">
+      <div className="container-page flex gap-3 overflow-x-auto pb-2 sm:gap-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {products.map((product) => (
           <div key={product.id} className="w-[46vw] shrink-0 sm:w-56">
             <ProductCard product={product} freeShipping={freeShipping} />

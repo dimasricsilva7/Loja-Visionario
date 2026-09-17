@@ -1,45 +1,19 @@
-import { ButtonLink } from "@/components/ui/Button";
 import { HeroImageRotator } from "./HeroImageRotator";
 
 export function Hero({ heroImages }: { heroImages: string[] }) {
   return (
-    <section className="relative overflow-hidden border-b border-border">
+    <section className="relative h-[320px] w-full overflow-hidden border-b border-border sm:h-[420px] lg:h-[480px]">
       {heroImages.length > 0 ? (
         <HeroImageRotator images={heroImages} />
       ) : (
         <div
-          className="absolute inset-0 -z-10"
+          className="absolute inset-0"
           style={{
             background:
               "radial-gradient(60% 60% at 80% 20%, rgba(29,185,84,0.18) 0%, rgba(0,0,0,0) 60%), radial-gradient(50% 50% at 10% 90%, rgba(29,185,84,0.10) 0%, rgba(0,0,0,0) 60%)",
           }}
         />
       )}
-
-      <div className="container-page relative flex flex-col items-start gap-6 py-16 sm:py-24 lg:py-28">
-        <span className="inline-flex items-center gap-2 rounded-full bg-brand px-3 py-1 text-xs font-semibold text-brand-fg">
-          Poucas peças em estoque
-        </span>
-
-        <h1 className="max-w-2xl text-4xl font-black leading-[1.05] tracking-tight sm:text-6xl">
-          Pré-Lançamento
-          <br />
-          Exclusivo
-        </h1>
-
-        <p className="max-w-lg text-base text-muted sm:text-lg">
-          Garanta já as novas peças da coleção antes que esgote. Edição limitada.
-        </p>
-
-        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-          <ButtonLink href="#produtos" size="lg" variant="primary">
-            Comprar agora
-          </ButtonLink>
-          <ButtonLink href="#produtos" size="lg" variant="secondary">
-            Ver coleção
-          </ButtonLink>
-        </div>
-      </div>
     </section>
   );
 }

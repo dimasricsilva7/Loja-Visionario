@@ -28,7 +28,6 @@ export function HeroImageRotator({ images }: { images: string[] }) {
           className={`object-cover transition-opacity duration-1000 ${i === index ? "opacity-100" : "opacity-0"}`}
         />
       ))}
-      <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-black/20" />
     </>
   );
 }

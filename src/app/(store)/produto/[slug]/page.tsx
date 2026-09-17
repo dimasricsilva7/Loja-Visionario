@@ -159,7 +159,7 @@ export default async function ProductPage({ params }: PageProps) {
       {related.length > 0 && (
         <section className="mt-12 border-t border-border pt-8">
           <h2 className="mb-4 text-xl font-black tracking-tight">Você também vai gostar</h2>
-          <div className="flex gap-3 overflow-x-auto pb-2 sm:gap-4">
+          <div className="flex gap-3 overflow-x-auto pb-2 sm:gap-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {related.map((p) => (
               <div key={p.id} className="w-[46vw] shrink-0 sm:w-56">
                 <ProductCard product={p} />
