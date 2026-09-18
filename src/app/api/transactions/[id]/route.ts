@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getTransaction } from "@/lib/bravopay";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { markOrderPaidAndNotifyMeta } from "@/lib/confirm-order-paid";
 
 const TERMINAL_STATUSES = new Set(["PAID", "EXPIRED", "REFUNDED", "FAILED", "CANCELED"]);
 
@@ -27,13 +28,19 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const status = normalizeStatus(transaction.status);
 
     if (status !== order.status) {
-      const updated = await prisma.order.update({
-        where: { id: order.id },
-        data: {
-          status,
-          paidAt: status === "PAID" ? new Date() : order.paidAt,
-        },
-      });
+      // PAID sempre passa pela função compartilhada: é ela quem dispara o
+      // Purchase pro Meta. Sem isso, um pedido confirmado por este polling
+      // (em vez de pelo webhook) nunca seria contabilizado nas campanhas.
+      const updated =
+        status === "PAID"
+          ? await (async () => {
+              await markOrderPaidAndNotifyMeta(order.id);
+              return prisma.order.findUniqueOrThrow({ where: { id: order.id } });
+            })()
+          : await prisma.order.update({
+              where: { id: order.id },
+              data: { status, paidAt: order.paidAt },
+            });
 
       await prisma.transaction.updateMany({
         where: { bravopayId: order.bravopayTransactionId },

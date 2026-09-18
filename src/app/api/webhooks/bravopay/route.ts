@@ -1,10 +1,9 @@
-import { NextRequest, NextResponse, after } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { getTransaction, BravoPayError } from "@/lib/bravopay";
+import { getTransaction } from "@/lib/bravopay";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
-import { getChargedAmountCents } from "@/lib/money";
-import { sendMetaEvent, normalizePhoneForMeta, splitName, buildFbcFromClickId } from "@/lib/meta-capi";
+import { markOrderPaidAndNotifyMeta } from "@/lib/confirm-order-paid";
 
 const webhookSchema = z.object({
   event: z.string().min(1),
@@ -103,77 +102,25 @@ export async function POST(request: NextRequest) {
       transactionId,
       message: error instanceof Error ? error.message : "erro desconhecido",
     });
-    return NextResponse.json({ received: true, processed: false });
+    // Status de erro de propósito: um 200 aqui faria a BravoPay considerar o
+    // webhook entregue com sucesso e nunca mais reenviá-lo, deixando o pedido
+    // preso em PENDING para sempre caso a falha tenha sido só uma instabilidade
+    // momentânea (ex.: timeout ao consultar a transação na BravoPay).
+    return NextResponse.json({ received: true, processed: false }, { status: 502 });
   }
 
   return NextResponse.json({ received: true });
 }
 
 async function confirmPayment(bravopayTransactionId: string) {
-  const order = await prisma.order.findUnique({
-    where: { bravopayTransactionId },
-    include: { items: true, utm: true },
-  });
+  const order = await prisma.order.findUnique({ where: { bravopayTransactionId } });
   if (!order || order.status !== "PENDING") return; // já processado ou pedido desconhecido
 
-  let confirmedPaid = false;
-  try {
-    const transaction = await getTransaction(bravopayTransactionId);
-    confirmedPaid = transaction.status.toUpperCase() === "PAID";
-  } catch (error) {
-    if (error instanceof BravoPayError) {
-      throw error;
-    }
-    throw error;
-  }
+  // Deixa propagar pro catch do POST se a consulta à BravoPay falhar: isso faz
+  // o handler responder um status de erro, então a BravoPay reenvia o webhook
+  // depois em vez de considerá-lo entregue.
+  const transaction = await getTransaction(bravopayTransactionId);
+  if (transaction.status.toUpperCase() !== "PAID") return;
 
-  if (!confirmedPaid) return;
-
-  // Update condicional: só aplica se ainda estiver PENDING, garantindo idempotência
-  // mesmo sob entregas duplicadas do webhook. O count confirma que esta chamada
-  // foi quem realizou a transição — evita disparar o Purchase 2x sob concorrência.
-  const result = await prisma.order.updateMany({
-    where: { id: order.id, status: "PENDING" },
-    data: { status: "PAID", paidAt: new Date() },
-  });
-
-  if (result.count !== 1) return;
-
-  after(() => {
-    const { firstName, lastName } = splitName(order.customerName);
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-    // Sem cookies do navegador aqui (é o BravoPay chamando, não o comprador):
-    // reconstrói o fbc a partir do fbclid capturado na criação do pedido.
-    const fbc = order.utm?.fbclid ? buildFbcFromClickId(order.utm.fbclid, order.createdAt.getTime()) : undefined;
-
-    void sendMetaEvent({
-      eventName: "Purchase",
-      // Mesmo ID usado pelo PurchaseTracker na página /obrigado, para a Meta
-      // deduplicar os dois sinais (navegador + servidor) em uma única conversão.
-      eventId: `purchase_${order.id}`,
-      eventSourceUrl: `${siteUrl}/obrigado?pedido=${order.id}`,
-      userData: {
-        email: order.customerEmail,
-        phone: normalizePhoneForMeta(order.customerPhone),
-        firstName,
-        lastName,
-        city: order.shippingCity,
-        state: order.shippingState,
-        zip: order.shippingCep,
-        country: "br",
-        externalId: order.customerCpf,
-        fbc,
-      },
-      customData: {
-        // Moeda real da cobrança (BRL): a Meta converte pro dólar da conta de
-        // anúncios usando a cotação do dia — nunca envie "USD" com valor em reais.
-        currency: "BRL",
-        value: getChargedAmountCents(order) / 100,
-        contentIds: order.items.map((item) => item.productId),
-        contentType: "product",
-        numItems: order.items.reduce((sum, item) => sum + item.quantity, 0),
-        orderId: order.orderNumber ?? order.id,
-      },
-    });
-  });
+  await markOrderPaidAndNotifyMeta(order.id);
 }
