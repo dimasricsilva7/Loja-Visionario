@@ -64,6 +64,34 @@ function ReverifyButton({ order }: { order: OrderRow }) {
   );
 }
 
+function ResendEmailButton({ order }: { order: OrderRow }) {
+  const [sending, setSending] = useState(false);
+
+  if (order.status !== "PENDING") return null;
+
+  async function handleClick() {
+    setSending(true);
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}/resend-email`, { method: "POST" });
+      const data = await res.json();
+      alert(res.ok ? "E-mail reenviado pro cliente." : data.error || "Falha ao reenviar.");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={sending}
+      className="text-xs font-semibold text-brand hover:underline disabled:opacity-50"
+    >
+      {sending ? "Enviando…" : "Reenviar e-mail"}
+    </button>
+  );
+}
+
 function FulfillmentSelect({ order }: { order: OrderRow }) {
   const router = useRouter();
   const [status, setStatus] = useState(order.fulfillmentStatus);
@@ -204,7 +232,10 @@ export function OrdersTable({ orders }: { orders: OrderRow[] }) {
                 </td>
                 <td className="p-3">
                   <StatusPill status={order.status} />
-                  <div className="mt-1"><ReverifyButton order={order} /></div>
+                  <div className="mt-1 flex flex-col gap-1">
+                    <ReverifyButton order={order} />
+                    <ResendEmailButton order={order} />
+                  </div>
                 </td>
                 <td className="p-3"><FulfillmentSelect order={order} /></td>
                 <td className="p-3 font-mono text-xs text-muted">{order.bravopayTransactionId?.slice(0, 14) ?? "—"}</td>
@@ -240,6 +271,7 @@ export function OrdersTable({ orders }: { orders: OrderRow[] }) {
               <div className="flex flex-col items-end gap-1">
                 <StatusPill status={order.status} />
                 <ReverifyButton order={order} />
+                <ResendEmailButton order={order} />
               </div>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-muted">
