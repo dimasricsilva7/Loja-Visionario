@@ -67,7 +67,7 @@ function ReverifyButton({ order }: { order: OrderRow }) {
 function ResendEmailButton({ order }: { order: OrderRow }) {
   const [sending, setSending] = useState(false);
 
-  if (order.status !== "PENDING") return null;
+  if (order.status !== "PENDING" && order.status !== "FAILED") return null;
 
   async function handleClick() {
     setSending(true);

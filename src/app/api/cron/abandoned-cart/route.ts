@@ -22,7 +22,10 @@ export async function POST(request: NextRequest) {
   const now = Date.now();
   const orders = await prisma.order.findMany({
     where: {
-      status: "PENDING",
+      // PENDING = PIX gerado mas não pago. FAILED = a BravoPay nem conseguiu
+      // gerar o PIX (instabilidade do gateway) — o cliente quis comprar e
+      // também merece o e-mail de recuperação, não só quem chegou a ver um QR code.
+      status: { in: ["PENDING", "FAILED"] },
       deletedAt: null,
       abandonedEmailSentAt: null,
       createdAt: {
@@ -31,36 +34,44 @@ export async function POST(request: NextRequest) {
       },
     },
     include: { items: { include: { product: true } } },
+    orderBy: { createdAt: "desc" },
     take: 50,
   });
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   let sent = 0;
+  // Um cliente que teve o PIX falhando pode ter várias tentativas (várias
+  // orders) no mesmo minuto — manda só um e-mail por cliente por execução,
+  // usando a tentativa mais recente (a lista já vem ordenada por data desc).
+  const emailedThisRun = new Set<string>();
 
   for (const order of orders) {
     const item = order.items[0];
     if (!item) continue;
 
-    const { subject, html, text } = buildAbandonedCartEmail({
-      customerName: order.customerName,
-      orderNumber: order.orderNumber ?? order.id.slice(0, 8).toUpperCase(),
-      siteUrl,
-      productSlug: item.product.slug,
-      productName: item.product.name,
-      productImage: item.product.image,
-      size: item.size,
-      quantity: item.quantity,
-      totalCents: order.totalCents,
-      shippingCents: order.shippingCents,
-    });
+    if (!emailedThisRun.has(order.customerEmail)) {
+      const { subject, html, text } = buildAbandonedCartEmail({
+        customerName: order.customerName,
+        orderNumber: order.orderNumber ?? order.id.slice(0, 8).toUpperCase(),
+        siteUrl,
+        productSlug: item.product.slug,
+        productName: item.product.name,
+        productImage: item.product.image,
+        size: item.size,
+        quantity: item.quantity,
+        totalCents: order.totalCents,
+        shippingCents: order.shippingCents,
+      });
 
-    const result = await sendEmail({ to: order.customerEmail, subject, html, text });
+      const result = await sendEmail({ to: order.customerEmail, subject, html, text });
+      emailedThisRun.add(order.customerEmail);
+      if (result.ok) sent++;
+    }
 
-    // Marca como enviado mesmo se o Resend falhar, pra não ficar tentando
-    // reenviar pro mesmo pedido a cada execução do cron (a cada 15 min).
+    // Marca como enviado mesmo se o Resend falhar, ou se esse pedido só não
+    // foi o escolhido pra representar o cliente nesta execução — em ambos os
+    // casos não queremos reprocessar de novo no próximo cron.
     await prisma.order.update({ where: { id: order.id }, data: { abandonedEmailSentAt: new Date() } });
-
-    if (result.ok) sent++;
   }
 
   return NextResponse.json({ scanned: orders.length, sent });
