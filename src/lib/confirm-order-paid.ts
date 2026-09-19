@@ -2,6 +2,8 @@ import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getChargedAmountCents } from "@/lib/money";
 import { sendMetaEvent, normalizePhoneForMeta, splitName, buildFbcFromClickId } from "@/lib/meta-capi";
+import { sendEmail } from "@/lib/resend";
+import { buildOrderConfirmedEmail } from "@/lib/order-confirmed-email";
 
 /**
  * Único ponto de transição PENDING -> PAID no sistema. Tanto o webhook da
@@ -14,7 +16,7 @@ import { sendMetaEvent, normalizePhoneForMeta, splitName, buildFbcFromClickId } 
 export async function markOrderPaidAndNotifyMeta(orderId: string): Promise<boolean> {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    include: { items: true, utm: true },
+    include: { items: { include: { product: true } }, utm: true },
   });
   if (!order || order.status !== "PENDING") return false;
 
@@ -60,6 +62,22 @@ export async function markOrderPaidAndNotifyMeta(orderId: string): Promise<boole
         orderId: order.orderNumber ?? order.id,
       },
     });
+
+    const item = order.items[0];
+    if (item) {
+      const { subject, html, text } = buildOrderConfirmedEmail({
+        customerName: order.customerName,
+        orderNumber: order.orderNumber ?? order.id.slice(0, 8).toUpperCase(),
+        siteUrl,
+        productName: item.product.name,
+        productImage: item.product.image,
+        size: item.size,
+        quantity: item.quantity,
+        totalCents: order.totalCents,
+        shippingCents: order.shippingCents,
+      });
+      void sendEmail({ to: order.customerEmail, subject, html, text });
+    }
   });
 
   return true;
