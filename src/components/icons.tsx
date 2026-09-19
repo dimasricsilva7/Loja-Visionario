@@ -215,6 +215,20 @@ export function HomeIcon({ className }: IconProps) {
   );
 }
 
+export function TagIcon({ className }: IconProps) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" className={className} aria-hidden="true">
+      <path
+        d="M10.6 2.8h4.6a2 2 0 0 1 2 2v4.6a2 2 0 0 1-.6 1.4l-7.2 7.2a2 2 0 0 1-2.8 0L2.8 14.2a2 2 0 0 1 0-2.8l7.2-7.2a2 2 0 0 1 1.4-.6Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <circle cx="13.2" cy="6.8" r="1.2" fill="currentColor" />
+    </svg>
+  );
+}
+
 export function PersonIcon({ className }: IconProps) {
   return (
     <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">

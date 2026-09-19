@@ -157,6 +157,7 @@ model Order {
   createdAt              DateTime  @default(now())
   paidAt                 DateTime?
   updatedAt              DateTime  @updatedAt
+  abandonedEmailSentAt   DateTime?
 
   items        OrderItem[]
   transactions Transaction[]
