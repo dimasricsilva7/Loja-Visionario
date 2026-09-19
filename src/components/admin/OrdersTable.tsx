@@ -29,6 +29,41 @@ interface OrderRow {
   address: string | null;
 }
 
+function ReverifyButton({ order }: { order: OrderRow }) {
+  const router = useRouter();
+  const [checking, setChecking] = useState(false);
+
+  if (order.status !== "PENDING" || !order.bravopayTransactionId) return null;
+
+  async function handleClick() {
+    setChecking(true);
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}/reverify`, { method: "POST" });
+      const data = await res.json();
+      if (res.ok && data.status === "PAID") {
+        router.refresh();
+      } else if (res.ok) {
+        alert("Ainda não consta como pago na BravoPay.");
+      } else {
+        alert(data.error || "Falha ao reverificar.");
+      }
+    } finally {
+      setChecking(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={checking}
+      className="text-xs font-semibold text-brand hover:underline disabled:opacity-50"
+    >
+      {checking ? "Verificando…" : "Reverificar pagamento"}
+    </button>
+  );
+}
+
 function FulfillmentSelect({ order }: { order: OrderRow }) {
   const router = useRouter();
   const [status, setStatus] = useState(order.fulfillmentStatus);
@@ -167,7 +202,10 @@ export function OrdersTable({ orders }: { orders: OrderRow[] }) {
                     <div className="text-xs font-normal text-muted">{order.installmentCount}x parcelado</div>
                   )}
                 </td>
-                <td className="p-3"><StatusPill status={order.status} /></td>
+                <td className="p-3">
+                  <StatusPill status={order.status} />
+                  <div className="mt-1"><ReverifyButton order={order} /></div>
+                </td>
                 <td className="p-3"><FulfillmentSelect order={order} /></td>
                 <td className="p-3 font-mono text-xs text-muted">{order.bravopayTransactionId?.slice(0, 14) ?? "—"}</td>
                 <td className="p-3 text-xs text-muted">{order.source ?? "—"}</td>
@@ -199,7 +237,10 @@ export function OrdersTable({ orders }: { orders: OrderRow[] }) {
                 <p className="font-semibold">{order.customerName}</p>
                 <p className="text-xs text-muted">{maskCPF(order.customerCpf)}</p>
               </div>
-              <StatusPill status={order.status} />
+              <div className="flex flex-col items-end gap-1">
+                <StatusPill status={order.status} />
+                <ReverifyButton order={order} />
+              </div>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-muted">
               <span>Produto</span><span className="text-right text-fg">{order.productName}</span>

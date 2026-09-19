@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getStoreSettings } from "@/lib/settings";
 import { SettingsForm } from "@/components/admin/SettingsForm";
+import { TestEmailCard } from "@/components/admin/TestEmailCard";
 
 export const metadata: Metadata = { title: "Configurações" };
 
@@ -23,6 +24,7 @@ export default async function AdminSettingsPage() {
           offerCountdownMinutes: settings.offerCountdownMinutes,
         }}
       />
+      <TestEmailCard />
     </div>
   );
 }

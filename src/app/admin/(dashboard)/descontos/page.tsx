@@ -1,21 +1,12 @@
 import type { Metadata } from "next";
-import { prisma } from "@/lib/prisma";
+import { getDistinctCategories } from "@/lib/get-categories";
 import { BulkDiscountForm } from "@/components/admin/BulkDiscountForm";
 
 export const metadata: Metadata = { title: "Descontos" };
 export const dynamic = "force-dynamic";
 
-async function getCategories(): Promise<string[]> {
-  const products = await prisma.product.findMany({ select: { categories: true } });
-  const set = new Set<string>();
-  for (const p of products) {
-    for (const c of p.categories) set.add(c);
-  }
-  return [...set].sort((a, b) => a.localeCompare(b, "pt-BR"));
-}
-
 export default async function AdminDescontosPage() {
-  const categories = await getCategories();
+  const categories = await getDistinctCategories();
 
   return (
     <div className="flex flex-col gap-6">

@@ -1,0 +1,62 @@
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+import { requireAdminApi } from "@/lib/auth-admin";
+import { getStoreSettings } from "@/lib/settings";
+import { sendEmail } from "@/lib/resend";
+import { buildAbandonedCartEmail } from "@/lib/abandoned-cart-email";
+
+const testEmailSchema = z.object({ to: z.string().email() });
+
+/**
+ * Envia o template de carrinho abandonado com dados de um produto real, mas
+ * um pedido fictício — pra conferir visualmente o e-mail (formatação, imagem,
+ * valores) sem precisar esperar um carrinho abandonado de verdade.
+ */
+export async function POST(request: NextRequest) {
+  const { response } = await requireAdminApi();
+  if (response) return response;
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
+  }
+
+  const parsed = testEmailSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "E-mail inválido" }, { status: 400 });
+  }
+
+  const product = await prisma.product.findFirst({ where: { active: true }, orderBy: { createdAt: "desc" } });
+  if (!product) {
+    return NextResponse.json({ error: "Nenhum produto ativo encontrado pra montar o teste" }, { status: 404 });
+  }
+
+  const settings = await getStoreSettings();
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+  const { subject, html, text } = buildAbandonedCartEmail({
+    customerName: "Cliente Teste",
+    orderNumber: "TESTE1234",
+    siteUrl,
+    productSlug: product.slug,
+    productName: product.name,
+    productImage: product.image,
+    size: "M",
+    quantity: 1,
+    totalCents: product.priceCents,
+    shippingCents: settings.shippingCents,
+  });
+
+  const ok = await sendEmail({ to: parsed.data.to, subject: `[TESTE] ${subject}`, html, text });
+  if (!ok) {
+    return NextResponse.json(
+      { error: "Falha ao enviar — confira RESEND_API_KEY, RESEND_FROM_EMAIL e se o domínio está verificado" },
+      { status: 502 }
+    );
+  }
+
+  return NextResponse.json({ sent: true });
+}

@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { requireAdminApi } from "@/lib/auth-admin";
 import { reconcileOrderWithBravoPay } from "@/lib/reconcile-order";
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const ip = getClientIp(request);
-  if (!checkRateLimit(`poll:${ip}`, 40, 60_000)) {
-    return NextResponse.json({ error: "Muitas requisições" }, { status: 429 });
-  }
+export async function POST(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { response } = await requireAdminApi();
+  if (response) return response;
 
   const { id } = await params;
   const result = await reconcileOrderWithBravoPay(id);

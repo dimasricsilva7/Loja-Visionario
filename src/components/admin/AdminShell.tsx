@@ -4,13 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import clsx from "clsx";
-import { CloseIcon, DashboardIcon, LogoutIcon, MenuIcon, OrdersIcon, ProductsIcon, SettingsIcon, TagIcon } from "@/components/icons";
+import { CardIcon, CloseIcon, DashboardIcon, LogoutIcon, MenuIcon, OrdersIcon, ProductsIcon, SettingsIcon, TagIcon } from "@/components/icons";
 
 const links = [
   { href: "/admin", label: "Dashboard", Icon: DashboardIcon },
   { href: "/admin/pedidos", label: "Pedidos", Icon: OrdersIcon },
   { href: "/admin/produtos", label: "Produtos", Icon: ProductsIcon },
   { href: "/admin/descontos", label: "Descontos", Icon: TagIcon },
+  { href: "/admin/parcelamento", label: "Parcelamento", Icon: CardIcon },
   { href: "/admin/configuracoes", label: "Configurações", Icon: SettingsIcon },
 ];
 
