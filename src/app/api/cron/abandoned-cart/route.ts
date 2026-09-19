@@ -54,13 +54,13 @@ export async function POST(request: NextRequest) {
       shippingCents: order.shippingCents,
     });
 
-    const ok = await sendEmail({ to: order.customerEmail, subject, html, text });
+    const result = await sendEmail({ to: order.customerEmail, subject, html, text });
 
     // Marca como enviado mesmo se o Resend falhar, pra não ficar tentando
     // reenviar pro mesmo pedido a cada execução do cron (a cada 15 min).
     await prisma.order.update({ where: { id: order.id }, data: { abandonedEmailSentAt: new Date() } });
 
-    if (ok) sent++;
+    if (result.ok) sent++;
   }
 
   return NextResponse.json({ scanned: orders.length, sent });

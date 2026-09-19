@@ -7,18 +7,24 @@ export interface SendEmailInput {
   text: string;
 }
 
+export interface SendEmailResult {
+  ok: boolean;
+  error?: string;
+}
+
 /**
  * Nunca lança: uma falha no envio de e-mail transacional não pode derrubar
  * a rota que o chamou (ex.: o cron de carrinho abandonado processando o
- * próximo pedido). Retorna false em caso de falha, o chamador decide o resto.
+ * próximo pedido). Retorna ok:false em caso de falha, o chamador decide o resto.
  */
-export async function sendEmail(input: SendEmailInput): Promise<boolean> {
+export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult> {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM_EMAIL;
 
   if (!apiKey || !from) {
-    console.warn("Resend não configurado (RESEND_API_KEY/RESEND_FROM_EMAIL) — e-mail não enviado");
-    return false;
+    const error = "Resend não configurado (RESEND_API_KEY/RESEND_FROM_EMAIL) — e-mail não enviado";
+    console.warn(error);
+    return { ok: false, error };
   }
 
   try {
@@ -39,13 +45,14 @@ export async function sendEmail(input: SendEmailInput): Promise<boolean> {
 
     if (!response.ok) {
       const detail = await response.text().catch(() => "");
-      console.error(`Resend respondeu ${response.status}`, detail.slice(0, 500));
-      return false;
+      const error = `Resend respondeu ${response.status}: ${detail.slice(0, 500)}`;
+      console.error(error);
+      return { ok: false, error };
     }
 
-    return true;
+    return { ok: true };
   } catch (error) {
     console.error("Falha ao enviar e-mail via Resend", error);
-    return false;
+    return { ok: false, error: error instanceof Error ? error.message : "erro desconhecido" };
   }
 }

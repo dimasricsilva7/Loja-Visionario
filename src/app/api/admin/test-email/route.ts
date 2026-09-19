@@ -50,12 +50,9 @@ export async function POST(request: NextRequest) {
     shippingCents: settings.shippingCents,
   });
 
-  const ok = await sendEmail({ to: parsed.data.to, subject: `[TESTE] ${subject}`, html, text });
-  if (!ok) {
-    return NextResponse.json(
-      { error: "Falha ao enviar — confira RESEND_API_KEY, RESEND_FROM_EMAIL e se o domínio está verificado" },
-      { status: 502 }
-    );
+  const result = await sendEmail({ to: parsed.data.to, subject: `[TESTE] ${subject}`, html, text });
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error || "Falha ao enviar" }, { status: 502 });
   }
 
   return NextResponse.json({ sent: true });
