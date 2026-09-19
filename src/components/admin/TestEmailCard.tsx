@@ -26,7 +26,10 @@ export function TestEmailCard() {
         setMessage({ type: "error", text: data.error || "Falha ao enviar" });
         return;
       }
-      setMessage({ type: "success", text: `E-mail de teste enviado pra ${email}.` });
+      setMessage({
+        type: "success",
+        text: `E-mail de teste enviado pra ${email}.${data.resendId ? ` ID no Resend: ${data.resendId}` : ""}`,
+      });
     } catch {
       setMessage({ type: "error", text: "Falha de conexão." });
     } finally {

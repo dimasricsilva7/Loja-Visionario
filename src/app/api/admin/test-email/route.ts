@@ -63,5 +63,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: result.error || "Falha ao enviar" }, { status: 502 });
   }
 
-  return NextResponse.json({ sent: true });
+  return NextResponse.json({ sent: true, resendId: result.id });
 }

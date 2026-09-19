@@ -10,6 +10,7 @@ export interface SendEmailInput {
 export interface SendEmailResult {
   ok: boolean;
   error?: string;
+  id?: string;
 }
 
 /**
@@ -43,14 +44,23 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
       }),
     });
 
+    const bodyText = await response.text().catch(() => "");
+
     if (!response.ok) {
-      const detail = await response.text().catch(() => "");
-      const error = `Resend respondeu ${response.status}: ${detail.slice(0, 500)}`;
+      const error = `Resend respondeu ${response.status}: ${bodyText.slice(0, 500)}`;
       console.error(error);
       return { ok: false, error };
     }
 
-    return { ok: true };
+    const id = (() => {
+      try {
+        return (JSON.parse(bodyText) as { id?: string }).id;
+      } catch {
+        return undefined;
+      }
+    })();
+
+    return { ok: true, id };
   } catch (error) {
     console.error("Falha ao enviar e-mail via Resend", error);
     return { ok: false, error: error instanceof Error ? error.message : "erro desconhecido" };
