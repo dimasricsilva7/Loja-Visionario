@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { trackPixelEvent } from "@/lib/meta-pixel-client";
+import { trackPixelEvent, setPixelAdvancedMatching } from "@/lib/meta-pixel-client";
 
 interface PurchaseTrackerProps {
   eventId: string;
@@ -10,6 +10,14 @@ interface PurchaseTrackerProps {
   orderId: string;
   contentIds: string[];
   numItems: number;
+  email: string;
+  phone: string;
+  firstName: string;
+  lastName: string;
+  city: string | null;
+  state: string | null;
+  zip: string | null;
+  externalId: string;
 }
 
 /**
@@ -18,13 +26,35 @@ interface PurchaseTrackerProps {
  * Conversions API no webhook de pagamento, então a Meta deduplica os dois
  * em uma única conversão (o sinal do servidor garante a contagem mesmo se
  * o comprador nunca voltar a esta página).
+ *
+ * Também manda os dados de correspondência avançada (e-mail, telefone, ...)
+ * antes do evento: o Pixel do navegador só tem fbp/fbc/IP por padrão, então
+ * sem isso o sinal do navegador chega bem mais pobre que o do servidor.
  */
-export function PurchaseTracker({ eventId, value, currency, orderId, contentIds, numItems }: PurchaseTrackerProps) {
+export function PurchaseTracker({
+  eventId,
+  value,
+  currency,
+  orderId,
+  contentIds,
+  numItems,
+  email,
+  phone,
+  firstName,
+  lastName,
+  city,
+  state,
+  zip,
+  externalId,
+}: PurchaseTrackerProps) {
   const fired = useRef(false);
 
   useEffect(() => {
     if (fired.current) return;
     fired.current = true;
+
+    setPixelAdvancedMatching({ email, phone, firstName, lastName, city, state, zip, externalId });
+
     trackPixelEvent(
       "Purchase",
       {
@@ -37,7 +67,7 @@ export function PurchaseTracker({ eventId, value, currency, orderId, contentIds,
       },
       eventId
     );
-  }, [eventId, value, currency, orderId, contentIds, numItems]);
+  }, [eventId, value, currency, orderId, contentIds, numItems, email, phone, firstName, lastName, city, state, zip, externalId]);
 
   return null;
 }

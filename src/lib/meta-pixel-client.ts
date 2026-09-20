@@ -8,6 +8,41 @@ function getFbq(): Fbq | null {
   return typeof fbq === "function" ? fbq : null;
 }
 
+export interface PixelAdvancedMatchingData {
+  email?: string | null;
+  phone?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zip?: string | null;
+  externalId?: string | null;
+}
+
+/**
+ * Envia dados de correspondência avançada (nome, e-mail, telefone, ...) pro
+ * Pixel ANTES de disparar um evento — só afeta eventos rastreados depois desta
+ * chamada na mesma página. Passe os valores em texto puro: o próprio script
+ * do Pixel normaliza e faz o hash antes de enviar pra Meta.
+ */
+export function setPixelAdvancedMatching(data: PixelAdvancedMatchingData): void {
+  const fbq = getFbq();
+  if (!fbq) return;
+
+  const payload: Record<string, string> = {};
+  if (data.email) payload.em = data.email;
+  if (data.phone) payload.ph = data.phone;
+  if (data.firstName) payload.fn = data.firstName;
+  if (data.lastName) payload.ln = data.lastName;
+  if (data.city) payload.ct = data.city;
+  if (data.state) payload.st = data.state;
+  if (data.zip) payload.zp = data.zip;
+  if (data.externalId) payload.external_id = data.externalId;
+
+  if (Object.keys(payload).length === 0) return;
+  fbq("set", "userData", payload);
+}
+
 /**
  * Dispara um evento padrão do Pixel no navegador com um eventID explícito,
  * usado para deduplicar com o mesmo evento enviado pela Conversions API.

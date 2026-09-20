@@ -7,6 +7,7 @@ import { formatBRPhone, formatCEP } from "@/lib/br-validators";
 import { CheckCircleIcon, ClockIcon } from "@/components/icons";
 import { CopyOrderCode } from "@/components/store/CopyOrderCode";
 import { PurchaseTracker } from "@/components/store/PurchaseTracker";
+import { splitName, normalizePhoneForMeta } from "@/lib/meta-capi";
 
 export const metadata: Metadata = {
   title: "Pedido confirmado",
@@ -33,18 +34,29 @@ export default async function ObrigadoPage({ searchParams }: PageProps) {
 
   return (
     <div className="container-page flex flex-col items-center py-16 text-center sm:py-24">
-      {isPaid && order && (
-        <PurchaseTracker
-          // Mesmo eventId enviado pela Conversions API no webhook de pagamento,
-          // então a Meta deduplica em uma única conversão em vez de contar 2x.
-          eventId={`purchase_${order.id}`}
-          value={getChargedAmountCents(order) / 100}
-          currency="BRL"
-          orderId={order.orderNumber ?? order.id}
-          contentIds={order.items.map((i) => i.productId)}
-          numItems={order.items.reduce((sum, i) => sum + i.quantity, 0)}
-        />
-      )}
+      {isPaid && order && (() => {
+        const { firstName, lastName } = splitName(order.customerName);
+        return (
+          <PurchaseTracker
+            // Mesmo eventId enviado pela Conversions API no webhook de pagamento,
+            // então a Meta deduplica em uma única conversão em vez de contar 2x.
+            eventId={`purchase_${order.id}`}
+            value={getChargedAmountCents(order) / 100}
+            currency="BRL"
+            orderId={order.orderNumber ?? order.id}
+            contentIds={order.items.map((i) => i.productId)}
+            numItems={order.items.reduce((sum, i) => sum + i.quantity, 0)}
+            email={order.customerEmail}
+            phone={normalizePhoneForMeta(order.customerPhone)}
+            firstName={firstName}
+            lastName={lastName}
+            city={order.shippingCity}
+            state={order.shippingState}
+            zip={order.shippingCep}
+            externalId={order.customerCpf}
+          />
+        );
+      })()}
       <div
         className={`flex h-16 w-16 items-center justify-center rounded-full ${
           isPaid ? "bg-brand text-brand-fg" : "bg-surface-2 text-muted"
